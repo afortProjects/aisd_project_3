@@ -1,11 +1,8 @@
 #include <iostream>
 #include "input_parser.h"
+#include "command_parser.h"
 int main() {
-	InputParser input_parser;
-	input_parser.getDataFromUser();
-	input_parser.getBoardFromUser();
-
-	input_parser.printUserBoard();
-	input_parser.printUserData();
+	CommandParser command_parser;
+	command_parser.run();
 	return 0;
 }

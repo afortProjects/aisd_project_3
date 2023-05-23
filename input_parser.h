@@ -30,6 +30,8 @@ public:
 
 	void printUserBoard();
 
+	void validateBoard();
+
 	void fillBoardIndexesMap();
 
 	~InputParser() {};
