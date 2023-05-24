@@ -7,8 +7,13 @@ void CommandParser::run() {
 			InputParser new_input_parser;
 			new_input_parser.getDataFromUser();
 			new_input_parser.getBoardFromUser();
-			new_input_parser.validateBoard();
 			input_parser = new_input_parser;
+
+			// if board is valid -> create Game object
+			if (new_input_parser.validateBoard()) {
+				Game new_game{ new_input_parser.getInputedBoard(), new_input_parser.getGameData() };
+				game = new_game;
+			}
 		}
 	}
 }

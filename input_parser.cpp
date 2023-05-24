@@ -1,10 +1,10 @@
 #include "input_parser.h"
 
 void InputParser::getDataFromUser() {
-	std::cin >> board_size >> number_of_pieces_that_trigger_collection_of_pieces >> number_of_white_pieces >> number_of_black_pieces;
-	std::cin >> reserve_of_white_pieces >> reserve_of_black_pieces >> starting_player;
+	std::cin >> game_data.board_size >> game_data.number_of_pieces_that_trigger_collection_of_pieces >> game_data.number_of_white_pieces >> game_data.number_of_black_pieces;
+	std::cin >> game_data.reserve_of_white_pieces >> game_data.reserve_of_black_pieces >> game_data.starting_player;
 
-	amount_of_rows = board_size * 2;
+	amount_of_rows = game_data.board_size * 2;
 }
 
 void InputParser::getBoardFromUser() {
@@ -21,35 +21,15 @@ void InputParser::getBoardFromUser() {
 	}
 }
 
-void InputParser::printUserData() {
-	std::cout << "Board size " << board_size << std::endl;
-	std::cout << "Number of pieces that trigger collection of pieces " << number_of_pieces_that_trigger_collection_of_pieces << std::endl;
-	std::cout << "Number of black pieces " << number_of_black_pieces << std::endl;
-	std::cout << "Number of white pieces " << number_of_white_pieces << std::endl;
-	std::cout << "Reserve of white pieces " << reserve_of_white_pieces << std::endl;
-	std::cout << "Reserve of black pieces " << reserve_of_black_pieces << std::endl;
-	std::cout << "Starting player " << starting_player << std::endl;
-}
-
-void InputParser::printUserBoard() {
-	for (int i = 0; i < inputed_board.size(); i++) {
-		for (int v = 0; v < amount_of_rows - inputed_board[i].size() -  1; v++) std::cout << ' ';
-		for (int j = 0; j < inputed_board[i].size(); j++) {
-			std::cout << inputed_board[i][j] << ' ';
-		}
-		std::cout << std::endl;
-	}
-}
-
-void InputParser::validateBoard() {
+bool InputParser::validateBoard() {
 	int amount_of_white_pieces_on_board = 0;
 	int amount_of_black_pieces_on_board = 0;
 
 	for (int i = 0; i < inputed_board.size(); i++) {
-		if ((inputed_board[i].size() != board_size + i && i <= board_size - 1) || \
-			(inputed_board[i].size() != board_size + (inputed_board.size() - i - 1) && i > board_size - 1)) {
+		if ((inputed_board[i].size() != game_data.board_size + i && i <= game_data.board_size - 1) || \
+			(inputed_board[i].size() != game_data.board_size + (inputed_board.size() - i - 1) && i > game_data.board_size - 1)) {
 			std::cout << "WRONG_BOARD_ROW_LENGTH" << std::endl;
-			return;
+			return false;
 		}
 		for (int j = 0; j < inputed_board[i].size(); j++) {
 			if (inputed_board[i][j] == 'W') amount_of_white_pieces_on_board++;
@@ -57,18 +37,25 @@ void InputParser::validateBoard() {
 		}
 	}
 
-	if (amount_of_white_pieces_on_board + reserve_of_white_pieces != number_of_white_pieces) {
+	if (amount_of_white_pieces_on_board + game_data.reserve_of_white_pieces != game_data.number_of_white_pieces) {
 		std::cout << "WRONG_WHITE_PAWNS_NUMBER" << std::endl;
-		return;
+		return false; 
 	}
-	else if (amount_of_black_pieces_on_board + reserve_of_black_pieces != number_of_black_pieces) {
+	else if (amount_of_black_pieces_on_board + game_data.reserve_of_black_pieces != game_data.number_of_black_pieces) {
 		std::cout << "WRONG_BLACK_PAWNS_NUMBER" << std::endl;
-		return;
+		return false;
 	}
 
 	std::cout << "BOARD_STATE_OK" << std::endl;
+	return true;
 }
 
-void InputParser::fillBoardIndexesMap() {
+// Getters
 
+GameData InputParser::getGameData() {
+	return this->game_data;
+}
+
+std::vector<std::vector<char>> InputParser::getInputedBoard() {
+	return this->inputed_board;
 }
