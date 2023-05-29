@@ -138,6 +138,7 @@ bool shiftVectorByRightIfFoundPlacce(std::vector<char>& line, char& current_play
 
 bool Game::checkIfMoveDoesntPushAnyPieceToTheEdge(std::pair<int, int>& start_pos, std::pair<int, int>& destination_pos, std::string& start, std::string& destination) {
 	// Line 
+	//TODO: check line method
 	if (destination_pos.first == start_pos.first) {
 		if (std::count(board[start_pos.first].begin(), board[start_pos.first].end(), '_') > 0) {
 			int index = 0;
@@ -150,7 +151,7 @@ bool Game::checkIfMoveDoesntPushAnyPieceToTheEdge(std::pair<int, int>& start_pos
 				for (int i = index; i > 1; i--) {
 					board[start_pos.first][i] = board[start_pos.first][i - 1];
 				}
-				board[start_pos.first][0] = game_data.current_player;
+				board[start_pos.first][1] = game_data.current_player;
 			}
 			else {
 				for (int i = board[start_pos.first].size() - 2; i > index + 1; i--) {
@@ -214,6 +215,9 @@ bool Game::checkIfMoveDoesntPushAnyPieceToTheEdge(std::pair<int, int>& start_pos
 			}
 
 		}
+		else {
+
+		}
 	}
 
 	game_status = "BAD_MOVE_ROW_IS_FULL";
@@ -246,7 +250,7 @@ void Game::doMove(std::string start, std::string destination) {
 				}
 
 				//Next player's turn
-				game_data.current_player = board[destination_pos.first][destination_pos.second] == 'B' ? 'W' : 'B';
+				game_data.current_player = game_data.current_player == 'B' ? 'W' : 'B';
 
 				game_status = "MOVE_COMMITED";
 			}
