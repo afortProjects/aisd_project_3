@@ -40,52 +40,50 @@ void Game::printGameState() {
 }
 
 void Game::fillBoardIndexesMap() {
-	// To middle
+	int start = game_data.board_size;
+	int max_board_row_length = start * 2 + 1;
 
-	int L = game_data.board_size;
-	int S = L * 2 + 1;
-
-	int counter = L;
-	int position_counter = 1;
-	int col = 0;
+	int x = start;
+	int y = 0;
 
 	int letter_counter = 0;
-	while (L != S) {
-		while (counter >= 0) {
+	int position_counter = 1;
+
+	while (start != max_board_row_length) {
+		while (x >= 0) {
 			std::string board_index = alphabet[letter_counter] + std::to_string(position_counter);
-			std::cout << board_index << " " << counter << " " << col << std::endl;
-			this->board_indexes_map[board_index] = std::pair<int, int>{ counter, col};
-			counter--;
+			std::cout << board_index << " " << x << " " << y << std::endl;
+			this->board_indexes_map[board_index] = std::pair<int, int>{ x, y};
+			x--;
 			position_counter++;
 		}
-		col++;
-		counter = L + 1;
-		L++;
+		y++;
+		x = start + 1;
+		start++;
 		position_counter = 1;
 		letter_counter++;
 	}
 
-	// After middle
-	
-	L--;
-	counter = S - 1;
-	int counter_col = 1;
-	col = 1;
-	while (L != game_data.board_size) {
-		while (counter >= counter_col) {
+	int limiter = 1;
+	start--;
+	x--;
+
+	while (start != game_data.board_size) {
+		while (x >= limiter) {
 			std::string board_index = alphabet[letter_counter] + std::to_string(position_counter);
-			std::cout << board_index << " " << counter  << " " << col << std::endl;
-			this->board_indexes_map[board_index] = std::pair<int, int>{ counter, col };
-			counter--;
+			std::cout << board_index << " " << x << " " << y << std::endl;
+			this->board_indexes_map[board_index] = std::pair<int, int>{ x, y };
+			x--;
 			position_counter++;
 		}
-		col++;
-		counter = S - 1;
-		counter_col++;
-		L--;
+		x = max_board_row_length - 1;
+		y++;
+
 		position_counter = 1;
 		letter_counter++;
-	}	
+		start--;
+		limiter++;
+	}
 }
 
 bool Game::validateMove(std::pair<int, int>& start_pos, std::pair<int, int>& destination_pos, std::string& start, std::string& destination) {
