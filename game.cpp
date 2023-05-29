@@ -52,7 +52,7 @@ void Game::fillBoardIndexesMap() {
 	while (start != max_board_row_length) {
 		while (x >= 0) {
 			std::string board_index = alphabet[letter_counter] + std::to_string(position_counter);
-			std::cout << board_index << " " << x << " " << y << std::endl;
+			//std::cout << board_index << " " << x << " " << y << std::endl;
 			this->board_indexes_map[board_index] = std::pair<int, int>{ x, y};
 			x--;
 			position_counter++;
@@ -70,7 +70,7 @@ void Game::fillBoardIndexesMap() {
 	while (start != game_data.board_size) {
 		while (x >= limiter) {
 			std::string board_index = alphabet[letter_counter] + std::to_string(position_counter);
-			std::cout << board_index << " " << x << " " << position_counter + letter_counter - (game_data.board_size + 1) << std::endl;
+			//std::cout << board_index << " " << x << " " << position_counter + letter_counter - (game_data.board_size + 1) << std::endl;
 			this->board_indexes_map[board_index] = std::pair<int, int>{ x, position_counter + letter_counter - (game_data.board_size + 1) };
 			x--;
 			position_counter++;
@@ -92,49 +92,6 @@ bool Game::validateMove(std::pair<int, int>& start_pos, std::pair<int, int>& des
 		return false;
 	}
 	if (board[start_pos.first][start_pos.second] == 'X') {
-		/*if (start_pos.first == 0 && start_pos.second == 0) {
-			if (destination_pos.first == start_pos.first + 1 && destination_pos.second == start_pos.second + 1) {
-				return true;
-			}
-		}
-		else if (start_pos.first == 0 && start_pos.second == game_data.board_size) {
-			if (destination_pos.first == start_pos.first + 1 && destination_pos.second == start_pos.first) {
-				return true;
-			}
-		}
-		else if (start_pos.first == game_data.board_size && start_pos.second == 0) {
-			if (destination_pos.second == start_pos.second + 1 && start_pos.first == destination_pos.first) {
-				return true;
-			}
-		}
-		else if (start_pos.first == game_data.board_size && start_pos.second == game_data.board_size * 2 + 1) {
-			if (destination_pos.second == start_pos.second - 1 && start_pos.first == destination_pos.first) {
-				return true;
-			}
-		}
-		else if (start_pos.first == game_data.board_size + 1 && start_pos.second == 0) {
-			if ((destination_pos.first == start_pos.first - 1 && destination_pos.second == start_pos.second + 1) || (destination_pos.second == start_pos.second + 1 && destination_pos.first == start_pos.first)) {
-				return true;
-			}
-		}
-		else if (start_pos.first == game_data.board_size + 1 && start_pos.second == game_data.board_size * 2) {
-			if (destination_pos.first == start_pos.first - 1 && destination_pos.second == start_pos.second) {
-				return true;
-			}
-		}
-		else {
-			if ((destination_pos.first == start_pos.first + 1 && destination_pos.second == start_pos.second) || (destination_pos.second == start_pos.second + 1 && destination_pos.first == start_pos.first)) {
-				return true;
-			}
-			if ((destination_pos.first == start_pos.first - 1 && destination_pos.second == start_pos.second + 1) || (destination_pos.first == start_pos.first && destination_pos.second == start_pos.second+1)) {
-				return true;
-			}
-			if ((destination_pos.first == start_pos.first - 1 && destination_pos.second == start_pos.second - 1) || (destination_pos.first == start_pos.first - 1 && destination_pos.second == start_pos.second + 1)) {
-				return true;
-			}
-		}*/
-
-		//TODO: review
 		if (start_pos.first == destination_pos.first && start_pos.second + 1 == destination_pos.second) {
 			return true;
 		}
@@ -148,6 +105,9 @@ bool Game::validateMove(std::pair<int, int>& start_pos, std::pair<int, int>& des
 			return true;
 		}
 		if ((start_pos.first + 1 == destination_pos.first && start_pos.second == destination_pos.second) || (start_pos.first == destination_pos.first && start_pos.second + 1 == destination_pos.second)) {
+			return true;
+		}
+		if ((start_pos.first + 1 == destination_pos.first && start_pos.second + 1== destination_pos.second) || (start_pos.first + 1== destination_pos.first && start_pos.second + 1 == destination_pos.second)) {
 			return true;
 		}
 	}
@@ -177,72 +137,127 @@ bool shiftVectorByRightIfFoundPlacce(std::vector<char>& line, char& current_play
 
 
 bool Game::checkIfMoveDoesntPushAnyPieceToTheEdge(std::pair<int, int>& start_pos, std::pair<int, int>& destination_pos, std::string& start, std::string& destination) {
-	// TODO: check, handle index 0 and last
-		// Line 
-		if (destination_pos.first == start_pos.first) {
-			if (std::count(board[start_pos.first].begin(), board[start_pos.first].end(), '_') > 0) {
-				int index = 0;
-				auto iterator = std::find(board[start_pos.first].begin(), board[start_pos.first].end(), '_');
+	// Line 
+	if (destination_pos.first == start_pos.first) {
+		if (std::count(board[start_pos.first].begin(), board[start_pos.first].end(), '_') > 0) {
+			int index = 0;
+			auto iterator = std::find(board[start_pos.first].begin(), board[start_pos.first].end(), '_');
 
-				if (iterator != board[start_pos.first].end()) {
-					index = static_cast<int> (std::distance(board[start_pos.first].begin(), iterator));
+			if (iterator != board[start_pos.first].end()) {
+				index = static_cast<int> (std::distance(board[start_pos.first].begin(), iterator));
+			}
+			if (start_pos.second == 0) {
+				for (int i = index; i > 1; i--) {
+					board[start_pos.first][i] = board[start_pos.first][i - 1];
 				}
-				if (start_pos.second == 0) {
-					for (int i = index; i > 1; i--) {
-						board[start_pos.first][i] = board[start_pos.first][i - 1];
-					}
-					board[start_pos.first][0] = game_data.current_player;
+				board[start_pos.first][0] = game_data.current_player;
+			}
+			else {
+				for (int i = board[start_pos.first].size() - 2; i > index + 1; i--) {
+					board[start_pos.first][i] = board[start_pos.first][i - 1];
 				}
-				else {
-					for (int i = board[start_pos.first].size() - 2; i > index + 1; i--) {
-						board[start_pos.first][i] = board[start_pos.first][i - 1];
+				board[start_pos.first][board[start_pos.first].size() - 1] = game_data.current_player;
+			}
+			return false;
+		}
+	}
+	else {
+		//Handle up of the board
+		std::vector<char> line;
+		int index = start[1] - '0'- 1;
+		char starter_letter = start[0];
+		if (start_pos.first <= game_data.board_size) {
+			if (start_pos.second == 0) { //Top left  
+				int skip = game_data.board_size - 1 - start_pos.first;
+				for (int i = 1; i < skip + 1; i++) {
+					line.push_back(board[i][i]);
+				}
+				for (int i = skip + 1; i < board.size() - 1; i++) {
+					line.push_back(board[i][index]);
+				}
+				if (shiftVectorByRightIfFoundPlacce(line, game_data.current_player)) {
+					int counter = 0;
+					for (int i = 1; i < skip + 1; i++) {
+						board[i][i] = line[counter];
+						counter++;
 					}
-					board[start_pos.first][board[start_pos.first].size() - 1] = game_data.current_player;
+					for (int i = skip + 1; i < board.size() - 1; i++) {
+						board[i][index] = line[counter];
+						counter++;
+					}
+					return false;
+				}
+
+			}
+			else { // Top right
+				int counter = index;
+				while (counter >= 2) {
+					std::string new_index = starter_letter + std::to_string(counter);
+					std::pair<int, int> new_index_pos = board_indexes_map[new_index];
+					line.push_back(board[new_index_pos.first][new_index_pos.second]);
+					counter--;
+				}
+				if (shiftVectorByRightIfFoundPlacce(line, game_data.current_player)) {
+					counter = index;
+					int line_counter = 0;
+					while (counter >= 2) {
+						std::string new_index = starter_letter + std::to_string(counter);
+						std::pair<int, int> new_index_pos = board_indexes_map[new_index];
+						board[new_index_pos.first][new_index_pos.second] = line[line_counter];
+						counter--;
+						line_counter++;
+					}
+					return false;
+				}
+			}
+		}
+	}
+	/*else {
+		std::vector<char> line;
+		char starter_letter = start[0];
+		int counter = start[1] - '0';
+		int counter_copy = counter;
+
+		if (destination_pos.second > game_data.board_size) {
+			while (counter_copy > 2) {
+				std::string new_index = starter_letter + std::to_string(counter_copy);
+				std::cout << new_index << std::endl;
+				std::pair<int, int> new_index_pos = board_indexes_map[new_index];
+				line.push_back(board[new_index_pos.first][new_index_pos.second]);
+				counter_copy--;
+			}
+			if (shiftVectorByRightIfFoundPlacce(line, game_data.current_player)) {
+				counter_copy = counter;
+				while (counter_copy > 2) {
+					std::string new_index = starter_letter + std::to_string(counter_copy);
+					std::pair<int, int> new_index_pos = board_indexes_map[new_index];
+					board[new_index_pos.first][new_index_pos.second] = line[line.size() - counter_copy];
+					counter_copy--;
 				}
 				return false;
 			}
 		}
 		else {
-			std::vector<char> line;
-			char starter_letter = start[0];
-			int counter = start[1] - '0';
-			int counter_copy = counter;
-			if (destination_pos.second > game_data.board_size) {
-				while (counter_copy > 2) {
-					std::string new_index = starter_letter + std::to_string(counter_copy);
-					std::pair<int, int> new_index_pos = board_indexes_map[new_index];
-					line.push_back(board[new_index_pos.first][new_index_pos.second]);
-					counter_copy--;
-				}
-				if (shiftVectorByRightIfFoundPlacce(line, game_data.current_player)) {
-					counter_copy = counter;
-					while (counter_copy > 2) {
-						std::string new_index = starter_letter + std::to_string(counter_copy);
-						std::pair<int, int> new_index_pos = board_indexes_map[new_index];
-						board[new_index_pos.first][new_index_pos.second] = line[line.size() - counter_copy];
-						counter_copy--;
-					}
-					return false;
-				}
+			int off = ( start[1] - '0' ) + 1;
+			for (size_t i = 1; i < 2 * game_data.board_size * 2 + 1; i++) {
+				if(counter_copy <= game_data.board_size)
+					counter_copy++;
+				std::string new_index = alphabet[starter_letter - 'a' - i] + std::to_string(counter_copy);
+				std::cout << new_index << std::endl;
+				std::pair<int, int> new_index_pos = board_indexes_map[new_index];
+				line.push_back(board[new_index_pos.first][new_index_pos.second]);
 			}
-			else {
-				int off = ( start[1] - '0' ) + 1;
-				for (size_t i = starter_letter - 'a' - 1; i < 2 * game_data.board_size + off ; i++) {
+			if (shiftVectorByRightIfFoundPlacce(line, game_data.current_player)) {
+				counter = 0;
+				for (size_t i = alphabet.find(starter_letter); i < 2 * game_data.board_size - static_cast<int>(start[1]) - 1; i++) {
 					std::string new_index = alphabet[i] + std::to_string(counter_copy);
 					std::pair<int, int> new_index_pos = board_indexes_map[new_index];
-					line.push_back(board[new_index_pos.first][new_index_pos.second]);
+					board[new_index_pos.first][new_index_pos.second] = line[counter];
 				}
-				if (shiftVectorByRightIfFoundPlacce(line, game_data.current_player)) {
-					counter = 0;
-					for (size_t i = alphabet.find(starter_letter); i < 2 * game_data.board_size - static_cast<int>(start[1]) - 1; i++) {
-						std::string new_index = alphabet[i] + std::to_string(counter_copy);
-						std::pair<int, int> new_index_pos = board_indexes_map[new_index];
-						board[new_index_pos.first][new_index_pos.second] = line[counter];
-					}
-					return false;
-				}
+				return false;
 			}
 		}
+	}*/
 
 	
 	game_status = "BAD_MOVE_ROW_IS_FULL";
