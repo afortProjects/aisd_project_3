@@ -215,7 +215,54 @@ bool Game::checkIfMoveDoesntPushAnyPieceToTheEdge(std::pair<int, int>& start_pos
 
 		}
 	}
+	/*else {
+		std::vector<char> line;
+		char starter_letter = start[0];
+		int counter = start[1] - '0';
+		int counter_copy = counter;
 
+		if (destination_pos.second > game_data.board_size) {
+			while (counter_copy > 2) {
+				std::string new_index = starter_letter + std::to_string(counter_copy);
+				std::cout << new_index << std::endl;
+				std::pair<int, int> new_index_pos = board_indexes_map[new_index];
+				line.push_back(board[new_index_pos.first][new_index_pos.second]);
+				counter_copy--;
+			}
+			if (shiftVectorByRightIfFoundPlacce(line, game_data.current_player)) {
+				counter_copy = counter;
+				while (counter_copy > 2) {
+					std::string new_index = starter_letter + std::to_string(counter_copy);
+					std::pair<int, int> new_index_pos = board_indexes_map[new_index];
+					board[new_index_pos.first][new_index_pos.second] = line[line.size() - counter_copy];
+					counter_copy--;
+				}
+				return false;
+			}
+		}
+		else {
+			int off = ( start[1] - '0' ) + 1;
+			for (size_t i = 1; i < 2 * game_data.board_size * 2 + 1; i++) {
+				if(counter_copy <= game_data.board_size)
+					counter_copy++;
+				std::string new_index = alphabet[starter_letter - 'a' - i] + std::to_string(counter_copy);
+				std::cout << new_index << std::endl;
+				std::pair<int, int> new_index_pos = board_indexes_map[new_index];
+				line.push_back(board[new_index_pos.first][new_index_pos.second]);
+			}
+			if (shiftVectorByRightIfFoundPlacce(line, game_data.current_player)) {
+				counter = 0;
+				for (size_t i = alphabet.find(starter_letter); i < 2 * game_data.board_size - static_cast<int>(start[1]) - 1; i++) {
+					std::string new_index = alphabet[i] + std::to_string(counter_copy);
+					std::pair<int, int> new_index_pos = board_indexes_map[new_index];
+					board[new_index_pos.first][new_index_pos.second] = line[counter];
+				}
+				return false;
+			}
+		}
+	}*/
+
+	
 	game_status = "BAD_MOVE_ROW_IS_FULL";
 	return true;
 }
