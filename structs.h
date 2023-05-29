@@ -7,4 +7,5 @@ struct GameData {
 	int reserve_of_white_pieces;
 	int reserve_of_black_pieces;
 	char starting_player;
+	char current_player;
 };

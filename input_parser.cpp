@@ -37,11 +37,11 @@ bool InputParser::validateBoard() {
 		}
 	}
 
-	if (amount_of_white_pieces_on_board + game_data.reserve_of_white_pieces != game_data.number_of_white_pieces) {
+	if (amount_of_white_pieces_on_board + game_data.reserve_of_white_pieces > game_data.number_of_white_pieces) {
 		std::cout << "WRONG_WHITE_PAWNS_NUMBER" << std::endl;
 		return false; 
 	}
-	else if (amount_of_black_pieces_on_board + game_data.reserve_of_black_pieces != game_data.number_of_black_pieces) {
+	else if (amount_of_black_pieces_on_board + game_data.reserve_of_black_pieces > game_data.number_of_black_pieces) {
 		std::cout << "WRONG_BLACK_PAWNS_NUMBER" << std::endl;
 		return false;
 	}

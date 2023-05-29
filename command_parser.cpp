@@ -15,5 +15,30 @@ void CommandParser::run() {
 				game = new_game;
 			}
 		}
+		else if (input.find("DO_MOVE") != std::string::npos) {
+			//TODO: Validate data
+
+			//Here, stream is created to split string by spaces, so we can retrieve position and destination positions
+			std::istringstream iss(input);
+			std::vector<std::string> words(
+				std::istream_iterator<std::string>{iss},
+				std::istream_iterator<std::string>()
+			);    
+
+			//Split string by -
+			std::istringstream iss_2(words[1]);
+			std::vector<std::string> tokens;
+			std::string token;
+
+			while (std::getline(iss_2, token, '-')) {
+				tokens.push_back(token);
+			}
+
+			game.doMove(tokens[0], tokens[1]);
+		}
+		else if (input == "PRINT_GAME_BOARD") {
+			game.printBoard();
+		}
 	}
+
 }

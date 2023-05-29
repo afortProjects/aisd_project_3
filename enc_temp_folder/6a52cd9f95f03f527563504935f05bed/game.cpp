@@ -70,8 +70,9 @@ void Game::fillBoardIndexesMap() {
 	L--;
 	counter = S - 1;
 	int counter_col = 1;
-	col = 1;
 	while (L != game_data.board_size) {
+		
+		col = S;
 		while (counter >= counter_col) {
 			std::string board_index = alphabet[letter_counter] + std::to_string(position_counter);
 			std::cout << board_index << " " << counter  << " " << col << std::endl;
@@ -79,7 +80,7 @@ void Game::fillBoardIndexesMap() {
 			counter--;
 			position_counter++;
 		}
-		col++;
+		col--;
 		counter = S - 1;
 		counter_col++;
 		L--;

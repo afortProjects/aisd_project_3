@@ -2,10 +2,10 @@
 
 #include "input_parser.h"
 #include "game.h"
-#include "printing_functions.h"
 
 #include <iostream>
 #include <string>
+#include <sstream>
 class CommandParser {
 private:
 	InputParser input_parser;
