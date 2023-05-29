@@ -67,17 +67,16 @@ void Game::fillBoardIndexesMap() {
 	int limiter = 1;
 	start--;
 	x--;
-
 	while (start != game_data.board_size) {
 		while (x >= limiter) {
 			std::string board_index = alphabet[letter_counter] + std::to_string(position_counter);
-			std::cout << board_index << " " << x << " " << y << std::endl;
-			this->board_indexes_map[board_index] = std::pair<int, int>{ x, y };
+			std::cout << board_index << " " << x << " " << position_counter + letter_counter - (game_data.board_size + 1) << std::endl;
+			this->board_indexes_map[board_index] = std::pair<int, int>{ x, position_counter + letter_counter - (game_data.board_size + 1) };
 			x--;
 			position_counter++;
 		}
 		x = max_board_row_length - 1;
-		y++;
+
 
 		position_counter = 1;
 		letter_counter++;
