@@ -1,11 +1,12 @@
 #include "game.h"
 
+
 Game::Game(std::vector<std::vector<char>> _board, GameData _game_data) : board(_board), game_data(_game_data) {
 	// Surround board with X -> starter points for pawns
-	
+
 	// First and last rows
 	std::vector<char> temp_vector;
-	for (int i = 0; i < game_data.board_size+1; i++) {
+	for (int i = 0; i < (game_data.board_size) + 1; i++) {
 		temp_vector.push_back('X');
 	}
 	board.insert(board.begin(), temp_vector);
@@ -13,11 +14,19 @@ Game::Game(std::vector<std::vector<char>> _board, GameData _game_data) : board(_
 
 	// Edges
 
-	for (int i = 1; i < board.size()-1; i++) {
+	for (int i = 1; i < board.size() - 1; i++) {
 		board[i].insert(board[i].begin(), 'X');
 		board[i].push_back('X');
 	}
-	
+
+	for (auto& v : board) {
+		int difference = game_data.board_size * 2 + 1 - v.size();
+		while (difference != 0) {
+			v.insert(v.begin(), ' ');
+			difference--;
+		}
+	}
+
 	game_data.current_player = game_data.starting_player;
 
 	fillBoardIndexesMap();
@@ -26,11 +35,19 @@ Game::Game(std::vector<std::vector<char>> _board, GameData _game_data) : board(_
 void Game::printBoard() {
 	std::cout << game_data.board_size << " " << game_data.number_of_pieces_that_trigger_collection_of_pieces << " " << game_data.number_of_white_pieces << " " << game_data.number_of_black_pieces << std::endl;
 	std::cout << game_data.reserve_of_white_pieces << " " << game_data.reserve_of_black_pieces << " " << game_data.current_player << std::endl;
-	for (int i = 1; i < board.size() - 1; i++) {
-		for (int v = 1; v < (game_data.board_size * 2 + 1) - board[i].size() +1; v++) std::cout << ' ';
-		for (int j = 1; j < board[i].size() - 1; j++) {
-			std::cout << board[i][j] << ' ';
+	for (auto& row : board) {
+		int counter = 0;
+
+		for (auto& element : row) {
+			if (element != 'X') {
+				std::cout << element;
+				if (element != ' ')
+					std::cout << ' ';
+				else
+					counter++;
+			}
 		}
+		for (int i = 0; i < counter; i++) std::cout << ' ';
 		std::cout << std::endl;
 	}
 }
@@ -40,86 +57,98 @@ void Game::printGameState() {
 }
 
 void Game::fillBoardIndexesMap() {
-	int start = game_data.board_size;
-	int max_board_row_length = start * 2 + 1;
+	int counter_pos = 0;
+	for (int i = 0; i < board.size(); i++) {
+		if (i <= game_data.board_size) {
+			int counter = 0;
+			int letter_counter = 0;
+			for (int j = 0; j < board.size(); j++) {
+				if (board[i][j] != ' ') {
+					std::string board_index;
+					if (j > board.size() - 1 - counter_pos) {
+						counter = board.size() - 1;
+						board_index = alphabet[letter_counter] + std::to_string(counter + 1 - counter_pos);
+					} else 
+						board_index = alphabet[letter_counter] + std::to_string(counter + 1);
 
-	int x = start;
-	int y = 0;
+					//std::cout << board_index << " " << i << " " << j << counter_pos << std::endl;
 
-	int letter_counter = 0;
-	int position_counter = 1;
-
-	while (start != max_board_row_length) {
-		while (x >= 0) {
-			std::string board_index = alphabet[letter_counter] + std::to_string(position_counter);
-			//std::cout << board_index << " " << x << " " << y << std::endl;
-			this->board_indexes_map[board_index] = std::pair<int, int>{ x, y};
-			x--;
-			position_counter++;
+					this->board_indexes_map[board_index] = std::pair<int, int>{ i , j };
+					letter_counter++;
+				}
+				counter++;
+			}
+			counter_pos++;
 		}
-		y++;
-		x = start + 1;
-		start++;
-		position_counter = 1;
-		letter_counter++;
-	}
+		else {
+			int letter_counter = i - game_data.board_size;
+			int counter = 0;
+			for (int j = 0; j < board.size(); j++) {
+				if (board[i][j] != ' ') {
+					std::string board_index;
+					if (j >= counter_pos) {
+						board_index = alphabet[letter_counter] + std::to_string(counter);
+					}
+					else
+						board_index = alphabet[letter_counter] + std::to_string(counter + 1);
 
-	int limiter = 1;
-	start--;
-	x--;
-	while (start != game_data.board_size) {
-		while (x >= limiter) {
-			std::string board_index = alphabet[letter_counter] + std::to_string(position_counter);
-			//std::cout << board_index << " " << x << " " << position_counter + letter_counter - (game_data.board_size + 1) << std::endl;
-			this->board_indexes_map[board_index] = std::pair<int, int>{ x, position_counter + letter_counter - (game_data.board_size + 1) };
-			x--;
-			position_counter++;
+					//std::cout << board_index << " " << i << " " << j << counter_pos << std::endl;
+
+					this->board_indexes_map[board_index] = std::pair<int, int>{ i , j };
+					letter_counter++;
+					
+					if(j < counter_pos)
+						counter++;
+				}
+			}
+			if(counter_pos < game_data.board_size+1)
+				counter_pos++;	
 		}
-		x = max_board_row_length - 1;
-
-
-		position_counter = 1;
-		letter_counter++;
-		start--;
-		limiter++;
 	}
 }
 
-bool Game::validateMove(std::pair<int, int>& start_pos, std::pair<int, int>& destination_pos, std::string& start, std::string& destination) {
+bool Game::validateMove(Move& move) {
 	//Check if start_pos and destination_pos arent null - werent found in hashmap
-	if (board[destination_pos.first][destination_pos.second] == 'X') {
-		game_status = "BAD_MOVE_" + destination + "_IS_WRONG_DESTINATION_FIELD";
+	if (board[move.destination_pos.first][move.destination_pos.second] == 'X') {
+		game_status = "BAD_MOVE_" + move.destination + "_IS_WRONG_DESTINATION_FIELD";
 		return false;
 	}
-	if (board[start_pos.first][start_pos.second] == 'X') {
-		if (start_pos.first == destination_pos.first && start_pos.second + 1 == destination_pos.second) {
+	//TODO: CHECK
+	if (board[move.start_pos.first][move.start_pos.second] == 'X') {
+		if (move.start_pos.first == move.destination_pos.first && move.start_pos.second + 1 == move.destination_pos.second) {
 			return true;
 		}
-		if (start_pos.first - 1 == destination_pos.first && start_pos.second + 1 == destination_pos.second) {
+		if (move.start_pos.first - 1 == move.destination_pos.first && move.start_pos.second - 1 == move.destination_pos.second) {
 			return true;
 		}
-		if (start_pos.first - 1 == destination_pos.first && start_pos.second == start_pos.second) {
+		if (move.start_pos.first - 1 == move.destination_pos.first && move.start_pos.second + 1 == move.destination_pos.second) {
 			return true;
 		}
-		if (start_pos.first == destination_pos.first && start_pos.second - 1 == destination_pos.second) {
+		if (move.start_pos.first - 1 == move.destination_pos.first && move.start_pos.second == move.destination_pos.second) {
 			return true;
 		}
-		if ((start_pos.first + 1 == destination_pos.first && start_pos.second == destination_pos.second) || (start_pos.first == destination_pos.first && start_pos.second + 1 == destination_pos.second)) {
+		if (move.start_pos.first + 1 == move.destination_pos.first && move.start_pos.second-1 == move.destination_pos.second) {
 			return true;
 		}
-		if ((start_pos.first + 1 == destination_pos.first && start_pos.second + 1== destination_pos.second) || (start_pos.first + 1== destination_pos.first && start_pos.second + 1 == destination_pos.second)) {
+		if (move.start_pos.first == move.destination_pos.first && move.start_pos.second - 1 == move.destination_pos.second) {
+			return true;
+		}
+		if ((move.start_pos.first + 1 == move.destination_pos.first && move.start_pos.second == move.destination_pos.second) || (move.start_pos.first == move.destination_pos.first && move.start_pos.second + 1 == move.destination_pos.second)) {
+			return true;
+		}
+		if ((move.start_pos.first + 1 == move.destination_pos.first && move.start_pos.second + 1== move.destination_pos.second) || (move.start_pos.first + 1== move.destination_pos.first && move.start_pos.second + 1 == move.destination_pos.second)) {
 			return true;
 		}
 	}
 	else {
-		game_status = "BAD_MOVE_" + start + "_IS_WRONG_STARTING_FIELD";
+		game_status = "BAD_MOVE_" + move.start + "_IS_WRONG_STARTING_FIELD";
 		return false;
 	}
 	game_status = "UNKNOWN_MOVE_DIRECTION";
 	return false;
 }
 
-bool shiftVectorByRightIfFoundPlacce(std::vector<char>& line, char& current_player) {
+bool Game::shiftVectorByRightIfFoundPlace(std::vector<char>& line) {
 	int index = 0;
 	auto iterator = std::find(line.begin(), line.end(), '_');
 	if (std::count(line.begin(), line.end(), '_') > 0) {
@@ -129,101 +158,157 @@ bool shiftVectorByRightIfFoundPlacce(std::vector<char>& line, char& current_play
 		for (int i = index; i > 0; i--) {
 			line[i] = line[i - 1];
 		}
-		line[0] = current_player;
+		line[0] = game_data.current_player;
 		return true;
 	}
 	return false;
 }
 
+bool Game::handleLineMovement(Move& move) {
+	if (std::count(board[move.start_pos.first].begin(), board[move.start_pos.first].end(), '_') > 0) {
+		int index = 0;
+		auto iterator = std::find(board[move.start_pos.first].begin(), board[move.start_pos.first].end(), '_');
 
-bool Game::checkIfMoveDoesntPushAnyPieceToTheEdge(std::pair<int, int>& start_pos, std::pair<int, int>& destination_pos, std::string& start, std::string& destination) {
-	// Line 
-	//TODO: check line method
-	if (destination_pos.first == start_pos.first) {
-		if (std::count(board[start_pos.first].begin(), board[start_pos.first].end(), '_') > 0) {
-			int index = 0;
-			auto iterator = std::find(board[start_pos.first].begin(), board[start_pos.first].end(), '_');
-
-			if (iterator != board[start_pos.first].end()) {
-				index = static_cast<int> (std::distance(board[start_pos.first].begin(), iterator));
-			}
-			if (start_pos.second == 0) {
-				for (int i = index; i > 1; i--) {
-					board[start_pos.first][i] = board[start_pos.first][i - 1];
-				}
-				board[start_pos.first][1] = game_data.current_player;
-			}
-			else {
-				for (int i = board[start_pos.first].size() - 2; i > index + 1; i--) {
-					board[start_pos.first][i] = board[start_pos.first][i - 1];
-				}
-				board[start_pos.first][board[start_pos.first].size() - 1] = game_data.current_player;
-			}
-			return false;
+		if (iterator != board[move.start_pos.first].end()) {
+			index = static_cast<int> (std::distance(board[move.start_pos.first].begin(), iterator));
 		}
-	}
-	else {
-		std::vector<char> line;
-		std::vector<std::pair<int, int>> indexes;
-		int index = start[1] - '0'- 1;
-		char starter_letter = start[0];
 
-		//Handle up of the board
-		if (start_pos.first <= game_data.board_size) {
-
-			//Top left
-			if (start_pos.second == 0) {  
-				int skip = game_data.board_size - 1 - start_pos.first;
-
-				for (int i = 1; i < skip + 1; i++) {
-					indexes.push_back(std::pair<int, int>(i, i));
-					line.push_back(board[i][i]);
-				}
-				for (int i = skip + 1; i < board.size() - 1; i++) {
-					indexes.push_back(std::pair<int, int>(i, index));
-					line.push_back(board[i][index]);
-				}
-
-				if (shiftVectorByRightIfFoundPlacce(line, game_data.current_player)) {
-					for (int i = 0; i < line.size(); i++) {
-						board[indexes[i].first][indexes[i].second] = line[i];
-					}
-					return false;
-				}
-
+		if (move.start_pos.second < game_data.board_size) {
+			for (int i = index; i > 1; i--) {
+				board[move.start_pos.first][i] = board[move.start_pos.first][i - 1];
 			}
-
-			// Top right
-			else {
-				int counter = index;
-
-				while (counter >= 2) {
-					std::string new_index = starter_letter + std::to_string(counter);
-					std::pair<int, int> new_index_pos = board_indexes_map[new_index];
-					line.push_back(board[new_index_pos.first][new_index_pos.second]);
-					indexes.push_back(new_index_pos);
-					counter--;
-				}
-
-				if (shiftVectorByRightIfFoundPlacce(line, game_data.current_player)) {
-					for (int i = 0; i < line.size(); i++) {
-						board[indexes[i].first][indexes[i].second] = line[i];
-					}
-					return false;
-				}
-
-			}
-
+			board[move.start_pos.first][1] = game_data.current_player;
 		}
 		else {
+			for (int i = index; i < board[move.start_pos.first].size() - 2; i++) {
+				board[move.start_pos.first][i] = board[move.start_pos.first][i + 1];
+			}
+			board[move.start_pos.first][board[move.start_pos.first].size() - 2] = game_data.current_player;
+		}
+		return true;
+	}
+	return false;
+}
 
+bool Game::handleTopLeftMovement(Move& move) {
+	if (move.start_pos.second <= game_data.board_size) {
+		int skip = 2 * game_data.board_size - 1 - move.start_pos.first;
+		int counter = move.start_pos.second;
+		for (int i = 1 + move.start_pos.first; i < skip + 1; i++) {
+			if (i > game_data.board_size)
+				counter++;
+			move.indexes.push_back(std::pair<int, int>(i, counter));
+			move.line.push_back(board[i][counter]);
+		}
+
+		if (shiftVectorByRightIfFoundPlace(move.line)) {
+			for (int i = 0; i < move.line.size(); i++) {
+				board[move.indexes[i].first][move.indexes[i].second] = move.line[i];
+			}
+			return true;
+		}
+
+	}
+	return false;
+}
+
+bool Game::handleTopRightMovement(Move& move) {
+	int counter = move.index;
+	while (counter >= 2) {
+		std::string new_index = move.starter_letter + std::to_string(counter);
+		std::pair<int, int> new_index_pos = board_indexes_map[new_index];
+		move.line.push_back(board[new_index_pos.first][new_index_pos.second]);
+		move.indexes.push_back(new_index_pos);
+		counter--;
+	}
+
+	if (shiftVectorByRightIfFoundPlace(move.line)) {
+		for (int i = 0; i < move.line.size(); i++) {
+			board[move.indexes[i].first][move.indexes[i].second] = move.line[i];
+		}
+		return true;
+	}
+	return false;
+
+}
+
+bool Game::handleBottomLeftMovement(Move& move) {
+	int counter = move.index + 2;
+
+	while (counter <= move.start_pos.first) {
+		std::string new_index = move.starter_letter + std::to_string(counter);
+		std::pair<int, int> new_index_pos = board_indexes_map[new_index];
+		move.line.push_back(board[new_index_pos.first][new_index_pos.second]);
+		move.indexes.push_back(new_index_pos);
+		counter++;
+	}
+
+	if (shiftVectorByRightIfFoundPlace(move.line)) {
+		for (int i = 0; i < move.line.size(); i++) {
+			board[move.indexes[i].first][move.indexes[i].second] = move.line[i];
+		}
+		return true;
+	}
+	return false;
+
+}
+
+bool Game::handleBottomRightMovement(Move& move) {
+	int counter = move.start_pos.second - 1;
+	for (int i = move.start_pos.first - 1; i > 0; i--) {
+		move.indexes.push_back(std::pair<int, int>(i, counter));
+		move.line.push_back(board[i][counter]);
+		if (i > game_data.board_size)
+			counter--;
+	}
+
+	if (shiftVectorByRightIfFoundPlace(move.line)) {
+		for (int i = 0; i < move.line.size(); i++) {
+			board[move.indexes[i].first][move.indexes[i].second] = move.line[i];
+		}
+		return true;
+	}
+	return false;
+
+}
+
+bool Game::checkIfMoveDoesntPushAnyPieceToTheEdge(Move& move) {
+	bool wasMoveMade = false;
+
+	if (move.destination_pos.first == move.start_pos.first) {
+		wasMoveMade = handleLineMovement(move);
+	}
+	else {
+		//Handle up side of the board
+		if (move.start_pos.first <= game_data.board_size) {
+
+			if (move.start_pos.second <= game_data.board_size) {
+				wasMoveMade = handleTopLeftMovement(move);
+			}
+
+			else {
+				wasMoveMade = handleTopRightMovement(move);
+			}
+		}
+		//Handle bottom side of the board
+		else {
+			if (move.start_pos.second <= game_data.board_size) {
+				wasMoveMade = handleBottomLeftMovement(move);
+			}
+			else {
+				wasMoveMade = handleBottomRightMovement(move);
+			}
 		}
 	}
 
-	game_status = "BAD_MOVE_ROW_IS_FULL";
-	return true;
+	if (!wasMoveMade) {
+		game_status = "BAD_MOVE_ROW_IS_FULL";
+		return true;
+	}
+	else {
+		return false;
+	}
 }
-
 
 void Game::doMove(std::string start, std::string destination) {
 	checkIfPlayerLost();
@@ -238,9 +323,10 @@ void Game::doMove(std::string start, std::string destination) {
 	else {
 		std::pair<int, int> start_pos = board_indexes_map[start];
 		std::pair<int, int> destination_pos = board_indexes_map[destination];
+		Move move(start, destination, start_pos, destination_pos);
 
-		if (validateMove(start_pos, destination_pos, start, destination)) {
-			if (!checkIfMoveDoesntPushAnyPieceToTheEdge(start_pos, destination_pos, start, destination)) {
+		if (validateMove(move)) {
+			if (!checkIfMoveDoesntPushAnyPieceToTheEdge(move)) {
 				//After placing the piece, remove it from reserve
 				if (game_data.current_player == 'B') {
 					game_data.reserve_of_black_pieces--;
@@ -252,14 +338,14 @@ void Game::doMove(std::string start, std::string destination) {
 				//Next player's turn
 				game_data.current_player = game_data.current_player == 'B' ? 'W' : 'B';
 
-				game_status = "MOVE_COMMITED";
+				game_status = "MOVE_COMMITTED";
 			}
 		}
 	}
 	//else {
 	//	game_state = "bad_move";
 	//}
-	std::cout << game_status << std::endl;
+	std::cout << game_status << '\n' << std::endl;
 }
 
 bool Game::checkIfPlayerLost() {

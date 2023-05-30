@@ -10,9 +10,12 @@ void CommandParser::run() {
 			input_parser = new_input_parser;
 
 			// if board is valid -> create Game object
+			wasGameCreated = false;
+
 			if (new_input_parser.validateBoard()) {
 				Game new_game{ new_input_parser.getInputedBoard(), new_input_parser.getGameData() };
 				game = new_game;
+				wasGameCreated = true;
 			}
 		}
 		else if (input.find("DO_MOVE") != std::string::npos) {
@@ -37,7 +40,10 @@ void CommandParser::run() {
 			game.doMove(tokens[0], tokens[1]);
 		}
 		else if (input == "PRINT_GAME_BOARD") {
-			game.printBoard();
+			if (wasGameCreated)
+				game.printBoard();
+			else
+				std::cout << "EMPTY_BOARD" << std::endl;
 		}
 	}
 

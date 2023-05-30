@@ -26,10 +26,22 @@ public:
 	void fillBoardIndexesMap();
 	
 	bool checkIfPlayerLost();
+	
+	bool validateMove(Move& move);
 
-	bool validateMove(std::pair<int, int>& start_pos, std::pair<int, int>& destination_pos, std::string& start, std::string& destination);
+	bool shiftVectorByRightIfFoundPlace(std::vector<char>& line);
 
-	bool checkIfMoveDoesntPushAnyPieceToTheEdge(std::pair<int, int>& start_pos, std::pair<int, int>& destination_pos, std::string& start, std::string& destination);
+	bool handleLineMovement(Move& move);
+
+	bool handleTopLeftMovement(Move& move);
+
+	bool handleTopRightMovement(Move& move);
+
+	bool handleBottomLeftMovement(Move& move);
+
+	bool handleBottomRightMovement(Move& move);
+
+	bool checkIfMoveDoesntPushAnyPieceToTheEdge(Move& move);
 
 	void doMove(std::string start, std::string destination);
 

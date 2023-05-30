@@ -4,10 +4,13 @@
 #include "game.h"
 
 #include <iostream>
-#include <string>
 #include <sstream>
+#include <vector>
+#include <string>
+#include <iterator>
 class CommandParser {
 private:
+	bool wasGameCreated = false;
 	InputParser input_parser;
 	Game game;
 public:

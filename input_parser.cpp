@@ -46,7 +46,7 @@ bool InputParser::validateBoard() {
 		return false;
 	}
 
-	std::cout << "BOARD_STATE_OK" << std::endl;
+	std::cout << "BOARD_STATE_OK" << '\n' << std::endl;
 	return true;
 }
 
