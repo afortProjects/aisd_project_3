@@ -6,6 +6,9 @@
 #include <vector>
 #include <unordered_map>
 #include <string>
+#include <sstream>
+#include <iterator>
+#include <algorithm>
 class Game {
 private:
 	std::string alphabet = "abcdefghijklmnoprstwuxyz";
@@ -27,6 +30,8 @@ public:
 	
 	bool checkIfPlayerLost();
 	
+	void checkForLinesOfPiecesInBoard(int& counter, std::string& line);
+
 	std::pair<bool, int> validateBoard();
 
 	bool validateMove(Move& move);

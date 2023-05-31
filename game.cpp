@@ -113,13 +113,38 @@ bool Game::checkIfPlayerLost() {
 	return false;
 }
 
+int countAlphaCharacters(const std::string& str) {
+	int count = 0;
+	for (auto& c : str) {
+		if (isalpha(c)) count++;
+	}
+	return count;
+}
+
+void Game::checkForLinesOfPiecesInBoard(int& counter, std::string& line) {
+	line.erase(std::remove(line.begin(), line.end(), 'X'), line.end());
+
+	std::istringstream iss(line);
+	std::vector<std::string> tokens;
+	std::string token;
+
+	while (std::getline(iss, token, '_')) {
+		int count = 0;
+		for (auto& c : token) {
+			if (isalpha(c)) count++;
+		}
+		if (count >= game_data.number_of_pieces_that_trigger_collection_of_pieces)
+			counter++;
+	}
+}
+
 std::pair<bool, int> Game::validateBoard() {
 	//Lines
 	int counter = 0;
 	for (int i = 0; i < board.size(); i++) {
-		int amount_of_pieces = std::count(board[i].begin(), board[i].end(), 'B') + std::count(board[i].begin(), board[i].end(), 'W');
-		if (amount_of_pieces >= game_data.number_of_pieces_that_trigger_collection_of_pieces)
-			counter++;
+		//Split string by -
+		std::string row (board[i].begin(), board[i].end());
+		checkForLinesOfPiecesInBoard(counter, row);
 	}
 
 	//Diagonally (a1-a2-a3...-a_n)
@@ -136,20 +161,52 @@ std::pair<bool, int> Game::validateBoard() {
 			index = alphabet[i] + std::to_string(position_counter);
 		}
 
-		int amount_of_pieces = std::count(line.begin(), line.end(), 'B') + std::count(line.begin(), line.end(), 'W');
-
-		if (amount_of_pieces >= game_data.number_of_pieces_that_trigger_collection_of_pieces)
-			counter++;
-
+		std::string row (line.begin(), line.end());
+		checkForLinesOfPiecesInBoard(counter, row);
 	}
 
 	//Diagonally a5-b5-c5-d5-e5...i-1
+	int starter = game_data.board_size + 1;
+	int covered_counter = 0;
+	int position_counter = 1;
+	int number_of_smaller_position_counter = 0;
+	int letter_starter = 0;
+
+	while (covered_counter < game_data.board_size * 2 + 1) {
+		int letter_counter = letter_starter;
+		int copied_counter = position_counter;
+		std::vector<char> line;
+		for (int i = letter_starter; i < starter - letter_starter; i++) {
+			std::string index;
+			if (i >= starter - number_of_smaller_position_counter ) {
+				copied_counter--;
+				index = alphabet[letter_counter] + std::to_string(copied_counter);
+			}
+			else {
+				index = alphabet[letter_counter] + std::to_string(position_counter);
+			}
+			std::pair<int, int> pos = board_indexes_map[index];
+			line.push_back(board[pos.first][pos.second]);
+			letter_counter++;
+		}
+
+		std::string row(line.begin(), line.end());
+		checkForLinesOfPiecesInBoard(counter, row);
+
+		position_counter++;
+		number_of_smaller_position_counter++;
+		covered_counter++;
+		starter++;
+
+		if (starter >= game_data.board_size * 2 + 1) {
+			letter_starter++;
+		}
+	}
 
 	if (counter == 0)
 		return std::pair<bool, int> {true, 0};
 	else 
 		return std::pair<bool, int> { false, counter };
-
 }
 
 bool Game::validateMove(Move& move) {
