@@ -129,12 +129,26 @@ void Game::checkForLinesOfPiecesInBoard(int& counter, std::string& line) {
 	std::string token;
 
 	while (std::getline(iss, token, '_')) {
-		int count = 0;
+		int count = 1;
+		std::string cleared_token;
 		for (auto& c : token) {
-			if (isalpha(c)) count++;
+			if (isalpha(c))
+				cleared_token += c;
 		}
-		if (count >= game_data.number_of_pieces_that_trigger_collection_of_pieces)
-			counter++;
+		if (cleared_token != "" && cleared_token.size() >= 2) {
+			for (int i = 0; i < cleared_token.size() - 1; i++) {
+				if (cleared_token[i] == cleared_token[i + 1]) {
+					count++;
+				}
+				else {
+					if (count >= game_data.number_of_pieces_that_trigger_collection_of_pieces)
+						counter++;
+					count = 1;
+				}
+			}
+			if (count >= game_data.number_of_pieces_that_trigger_collection_of_pieces)
+				counter++;
+		}
 	}
 }
 
