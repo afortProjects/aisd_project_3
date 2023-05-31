@@ -21,15 +21,14 @@ void InputParser::getBoardFromUser() {
 	}
 }
 
-bool InputParser::validateBoard() {
+std::pair<bool, std::string> InputParser::validateBoard() {
 	int amount_of_white_pieces_on_board = 0;
 	int amount_of_black_pieces_on_board = 0;
 
 	for (int i = 0; i < inputed_board.size(); i++) {
 		if ((inputed_board[i].size() != game_data.board_size + i && i <= game_data.board_size - 1) || \
 			(inputed_board[i].size() != game_data.board_size + (inputed_board.size() - i - 1) && i > game_data.board_size - 1)) {
-			std::cout << "WRONG_BOARD_ROW_LENGTH" << std::endl;
-			return false;
+			return std::pair<bool, std::string> {false, "WRONG_BOARD_ROW_LENGTH"};
 		}
 		for (int j = 0; j < inputed_board[i].size(); j++) {
 			if (inputed_board[i][j] == 'W') amount_of_white_pieces_on_board++;
@@ -38,16 +37,14 @@ bool InputParser::validateBoard() {
 	}
 
 	if (amount_of_white_pieces_on_board + game_data.reserve_of_white_pieces > game_data.number_of_white_pieces) {
-		std::cout << "WRONG_WHITE_PAWNS_NUMBER" << std::endl;
-		return false; 
+		return std::pair<bool, std::string> {false, "WRONG_WHITE_PAWNS_NUMBER"};
 	}
 	else if (amount_of_black_pieces_on_board + game_data.reserve_of_black_pieces > game_data.number_of_black_pieces) {
-		std::cout << "WRONG_BLACK_PAWNS_NUMBER" << std::endl;
-		return false;
-	}
+		return std::pair<bool, std::string> {false, "WRONG_BLACK_PAWNS_NUMBER"};
 
-	std::cout << "BOARD_STATE_OK" << '\n' << std::endl;
-	return true;
+
+	}
+	return std::pair<bool, std::string> {true, "BOARD_STATE_OK"};
 }
 
 // Getters

@@ -107,6 +107,51 @@ void Game::fillBoardIndexesMap() {
 	}
 }
 
+bool Game::checkIfPlayerLost() {
+	int reserve = game_data.current_player == 'B' ? game_data.reserve_of_black_pieces : game_data.reserve_of_white_pieces;
+	if (reserve == 0) return true;
+	return false;
+}
+
+std::pair<bool, int> Game::validateBoard() {
+	//Lines
+	int counter = 0;
+	for (int i = 0; i < board.size(); i++) {
+		int amount_of_pieces = std::count(board[i].begin(), board[i].end(), 'B') + std::count(board[i].begin(), board[i].end(), 'W');
+		if (amount_of_pieces >= game_data.number_of_pieces_that_trigger_collection_of_pieces)
+			counter++;
+	}
+
+	//Diagonally (a1-a2-a3...-a_n)
+	int amount_of_letters = 2 * game_data.board_size + 1;
+	for (int i = 0; i < amount_of_letters; i++) {
+		std::vector<char> line;
+		int position_counter = 1;
+		std::string index = alphabet[i] + std::to_string(position_counter);
+		
+		while (board_indexes_map.count(index) != 0) {
+			std::pair<int, int> pos = board_indexes_map[index];
+			line.push_back(board[pos.first][pos.second]);
+			position_counter++;
+			index = alphabet[i] + std::to_string(position_counter);
+		}
+
+		int amount_of_pieces = std::count(line.begin(), line.end(), 'B') + std::count(line.begin(), line.end(), 'W');
+
+		if (amount_of_pieces >= game_data.number_of_pieces_that_trigger_collection_of_pieces)
+			counter++;
+
+	}
+
+	//Diagonally a5-b5-c5-d5-e5...i-1
+
+	if (counter == 0)
+		return std::pair<bool, int> {true, 0};
+	else 
+		return std::pair<bool, int> { false, counter };
+
+}
+
 bool Game::validateMove(Move& move) {
 	//Check if start_pos and destination_pos arent null - werent found in hashmap
 	if (board[move.destination_pos.first][move.destination_pos.second] == 'X') {
@@ -346,10 +391,4 @@ void Game::doMove(std::string start, std::string destination) {
 	//	game_state = "bad_move";
 	//}
 	std::cout << game_status << '\n' << std::endl;
-}
-
-bool Game::checkIfPlayerLost() {
-	int reserve = game_data.current_player == 'B' ? game_data.reserve_of_black_pieces : game_data.reserve_of_white_pieces;
-	if (reserve == 0) return true;
-	return false;
 }

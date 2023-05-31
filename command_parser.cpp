@@ -11,11 +11,23 @@ void CommandParser::run() {
 
 			// if board is valid -> create Game object
 			wasGameCreated = false;
+			std::pair<bool, std::string> input_parser_validation = new_input_parser.validateBoard();
 
-			if (new_input_parser.validateBoard()) {
+			if (input_parser_validation.first) {
 				Game new_game{ new_input_parser.getInputedBoard(), new_input_parser.getGameData() };
 				game = new_game;
-				wasGameCreated = true;
+				std::pair<bool, int> game_board_validation = game.validateBoard();
+				if (!game_board_validation.first) {
+					std::cout << "ERROR_FOUND_" <<  game_board_validation.second <<"_ROW_OF_LENGTH_K\n" << std::endl;
+					wasGameCreated = false;
+				}
+				else {
+					std::cout << input_parser_validation.second << '\n' << std::endl;;
+					wasGameCreated = true;
+				}
+			}
+			else {
+				std::cout << input_parser_validation.second << '\n' << std::endl;;
 			}
 		}
 		else if (input.find("DO_MOVE") != std::string::npos) {

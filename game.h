@@ -27,6 +27,8 @@ public:
 	
 	bool checkIfPlayerLost();
 	
+	std::pair<bool, int> validateBoard();
+
 	bool validateMove(Move& move);
 
 	bool shiftVectorByRightIfFoundPlace(std::vector<char>& line);

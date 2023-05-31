@@ -20,7 +20,7 @@ public:
 
 	void getBoardFromUser();
 
-	bool validateBoard();
+	std::pair<bool, std::string> validateBoard();
 
 	// Getters
 
