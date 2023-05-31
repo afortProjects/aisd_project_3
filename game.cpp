@@ -121,8 +121,17 @@ int countAlphaCharacters(const std::string& str) {
 	return count;
 }
 
-void Game::checkForLinesOfPiecesInBoard(int& counter, std::string& line) {
-	line.erase(std::remove(line.begin(), line.end(), 'X'), line.end());
+void Game::checkForLinesOfPiecesInBoard(int& counter, std::string& line, std::vector<std::string> indexes) {
+	for (int i = 0; i < line.size(); i++) {
+		if (line[i] == 'X' || line[i] == ' ') {
+			line[i] = ' ';
+			if (indexes.size() > 0) {
+				indexes[i] = " ";
+			}
+		}
+	}
+	indexes.erase(std::remove(indexes.begin(), indexes.end(), " "), indexes.end());
+	line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
 
 	std::istringstream iss(line);
 	std::vector<std::string> tokens;
@@ -130,14 +139,9 @@ void Game::checkForLinesOfPiecesInBoard(int& counter, std::string& line) {
 
 	while (std::getline(iss, token, '_')) {
 		int count = 1;
-		std::string cleared_token;
-		for (auto& c : token) {
-			if (isalpha(c))
-				cleared_token += c;
-		}
-		if (cleared_token != "" && cleared_token.size() >= 2) {
-			for (int i = 0; i < cleared_token.size() - 1; i++) {
-				if (cleared_token[i] == cleared_token[i + 1]) {
+		if (token != "" && token.size() >= 2) {
+			for (int i = 0; i < token.size() - 1; i++) {
+				if (token[i] == token[i + 1]) {
 					count++;
 				}
 				else {
@@ -158,25 +162,28 @@ std::pair<bool, int> Game::validateBoard() {
 	for (int i = 0; i < board.size(); i++) {
 		//Split string by -
 		std::string row (board[i].begin(), board[i].end());
-		checkForLinesOfPiecesInBoard(counter, row);
+		checkForLinesOfPiecesInBoard(counter, row, std::vector<std::string> ());
 	}
 
 	//Diagonally (a1-a2-a3...-a_n)
 	int amount_of_letters = 2 * game_data.board_size + 1;
 	for (int i = 0; i < amount_of_letters; i++) {
 		std::vector<char> line;
+		std::vector < std::string > indexes;
+		
 		int position_counter = 1;
 		std::string index = alphabet[i] + std::to_string(position_counter);
 		
 		while (board_indexes_map.count(index) != 0) {
 			std::pair<int, int> pos = board_indexes_map[index];
 			line.push_back(board[pos.first][pos.second]);
+			indexes.push_back(index);
 			position_counter++;
 			index = alphabet[i] + std::to_string(position_counter);
 		}
 
 		std::string row (line.begin(), line.end());
-		checkForLinesOfPiecesInBoard(counter, row);
+		checkForLinesOfPiecesInBoard(counter, row, indexes);
 	}
 
 	//Diagonally a5-b5-c5-d5-e5...i-1
@@ -190,6 +197,8 @@ std::pair<bool, int> Game::validateBoard() {
 		int letter_counter = letter_starter;
 		int copied_counter = position_counter;
 		std::vector<char> line;
+		std::vector<std::string> indexes;
+
 		for (int i = letter_starter; i < starter - letter_starter; i++) {
 			std::string index;
 			if (i >= starter - number_of_smaller_position_counter ) {
@@ -201,11 +210,12 @@ std::pair<bool, int> Game::validateBoard() {
 			}
 			std::pair<int, int> pos = board_indexes_map[index];
 			line.push_back(board[pos.first][pos.second]);
+			indexes.push_back(index);
 			letter_counter++;
 		}
 
 		std::string row(line.begin(), line.end());
-		checkForLinesOfPiecesInBoard(counter, row);
+		checkForLinesOfPiecesInBoard(counter, row, indexes);
 
 		position_counter++;
 		number_of_smaller_position_counter++;

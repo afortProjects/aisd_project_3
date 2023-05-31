@@ -30,7 +30,7 @@ public:
 	
 	bool checkIfPlayerLost();
 	
-	void checkForLinesOfPiecesInBoard(int& counter, std::string& line);
+	void checkForLinesOfPiecesInBoard(int& counter, std::string& line, std::vector<std::string> indexes);
 
 	std::pair<bool, int> validateBoard();
 
