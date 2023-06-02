@@ -109,19 +109,23 @@ void Game::fillBoardIndexesMap() {
 
 bool Game::checkIfPlayerLost() {
 	int reserve = game_data.current_player == 'B' ? game_data.reserve_of_black_pieces : game_data.reserve_of_white_pieces;
-	if (reserve == 0) return true;
+	if (reserve == 0) {
+		game_state = game_data.current_player == 'B' ? "black_win" : "white_win";
+		return true;
+	}
 	return false;
 }
 
-int countAlphaCharacters(const std::string& str) {
-	int count = 0;
-	for (auto& c : str) {
-		if (isalpha(c)) count++;
+void Game::calculatePoints(int count, char color) {
+	if (color == 'B') {
+		game_data.reserve_of_black_pieces += count;
 	}
-	return count;
+	else {
+		game_data.reserve_of_white_pieces += count;
+	}
 }
 
-void Game::checkForLinesOfPiecesInBoard(int& counter, std::string& line, std::vector<std::string> indexes) {
+void Game::splitLineAndIndexes(std::string& line, std::vector<std::string>& indexes, std::vector<std::string>& splitted_line, std::vector<std::vector<std::string>>& splitted_indexes) {
 	for (int i = 0; i < line.size(); i++) {
 		if (line[i] == 'X' || line[i] == ' ') {
 			line[i] = ' ';
@@ -132,37 +136,119 @@ void Game::checkForLinesOfPiecesInBoard(int& counter, std::string& line, std::ve
 	}
 	indexes.erase(std::remove(indexes.begin(), indexes.end(), " "), indexes.end());
 	line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
+	int temp_counter = 0;
 
-	std::istringstream iss(line);
-	std::vector<std::string> tokens;
-	std::string token;
-
-	while (std::getline(iss, token, '_')) {
-		int count = 1;
-		if (token != "" && token.size() >= 2) {
-			for (int i = 0; i < token.size() - 1; i++) {
-				if (token[i] == token[i + 1]) {
-					count++;
+	for (int i = 0; i < line.size(); i++) {
+		if (line[i] == '_') {
+			std::string temp = line.substr(temp_counter, i - temp_counter);
+			if (temp != "") splitted_line.push_back(temp);
+			if (indexes.size() >= 1) {
+				std::vector<std::string> temp_vector;
+				for (int j = temp_counter; j < i; j++) {
+					temp_vector.push_back(indexes[j]);
 				}
-				else {
-					if (count >= game_data.number_of_pieces_that_trigger_collection_of_pieces)
-						counter++;
-					count = 1;
+				if (temp_counter == i + 1) temp_vector.push_back(indexes[i]);
+
+				if (temp_vector.size() >= 1) {
+					splitted_indexes.push_back(temp_vector);
+
 				}
 			}
-			if (count >= game_data.number_of_pieces_that_trigger_collection_of_pieces)
-				counter++;
+			temp_counter = i + 1;
+		}
+	}
+
+	if (temp_counter < line.size()) {
+		splitted_line.push_back(line.substr(temp_counter, line.size() - temp_counter));
+		if (indexes.size() >= 1) {
+			std::vector<std::string> temp_vector;
+			for (int j = temp_counter; j < line.size(); j++) {
+				temp_vector.push_back(indexes[j]);
+			}
+			splitted_indexes.push_back(temp_vector);
 		}
 	}
 }
 
-std::pair<bool, int> Game::validateBoard() {
+void Game::checkForLinesOfPiecesInBoard(int& counter, std::string& line, std::vector<std::string> indexes, int board_index, bool is_move) {
+	std::vector<std::string> splitted_line;
+	std::vector<std::vector<std::string>> splitted_indexes;
+	splitLineAndIndexes(line, indexes, splitted_line, splitted_indexes);
+
+	for (int i = 0; i < splitted_line.size(); i++) {
+		std::string token = splitted_line[i];
+		int count = 1;
+		if (token != "" && token.size() >= 2) {
+			for (int h = 0; h < token.size() - 1; h++) {
+				if (token[h] == token[h + 1]) {
+					count++;
+				}
+				else {
+					if (count >= game_data.number_of_pieces_that_trigger_collection_of_pieces) {
+						if (board_index != NULL && is_move) {
+							std::string board_line(board[board_index].begin(), board[board_index].end());
+							size_t pos = board_line.find(token); 
+							std::string cleared_line(token.size(), '_');
+							if (pos != std::string::npos) { 
+								board_line.replace(pos, token.size(), cleared_line); 
+							}
+							for (int v = 1; v < board[board_index].size() - 2; v++) {
+								board[board_index][v] = board_line[v];
+							}
+						}
+						else if (is_move) {
+							for (auto& ind : splitted_indexes[i]) {
+								std::pair<int, int> position = board_indexes_map[ind];
+								board[position.first][position.second] = '_';
+							}
+							break;
+						}
+
+						counter++;
+						calculatePoints(count, token[h]);
+
+					}
+					count = 1;
+				}
+			}
+			//If there wasn't _ at the end
+			if (count >= game_data.number_of_pieces_that_trigger_collection_of_pieces) {
+				if (board_index != NULL && is_move) {
+					std::string board_line(board[board_index].begin(), board[board_index].end());
+					size_t pos = board_line.find(token);
+					std::string cleared_line(token.size(), '_');
+					if (pos != std::string::npos) {
+						board_line.replace(pos, token.size(), cleared_line);
+					}
+					for (int v = 1; v < board[board_index].size() - 2; v++) {
+						board[board_index][v] = board_line[v];
+					}
+				}
+				if (splitted_indexes.size() >= 1 && is_move) {
+					for (auto& ind : splitted_indexes.back()) {
+						std::pair<int, int> position = board_indexes_map[ind];
+						board[position.first][position.second] = '_';
+					}
+				}
+				if (std::count(token.begin(), token.end(), 'B') > std::count(token.begin(), token.end(), 'W')) {
+					calculatePoints(count, 'B');
+				}
+				else {
+					calculatePoints(count, 'W');
+				}
+				counter++;
+			}
+		}
+	}
+}
+
+std::pair<bool, int> Game::validateBoard(bool is_move) {
 	//Lines
 	int counter = 0;
 	for (int i = 0; i < board.size(); i++) {
 		//Split string by -
 		std::string row (board[i].begin(), board[i].end());
-		checkForLinesOfPiecesInBoard(counter, row, std::vector<std::string> ());
+		checkForLinesOfPiecesInBoard(counter, row, std::vector<std::string> (), i, is_move);
 	}
 
 	//Diagonally (a1-a2-a3...-a_n)
@@ -183,7 +269,7 @@ std::pair<bool, int> Game::validateBoard() {
 		}
 
 		std::string row (line.begin(), line.end());
-		checkForLinesOfPiecesInBoard(counter, row, indexes);
+		checkForLinesOfPiecesInBoard(counter, row, indexes, NULL, is_move);
 	}
 
 	//Diagonally a5-b5-c5-d5-e5...i-1
@@ -215,7 +301,7 @@ std::pair<bool, int> Game::validateBoard() {
 		}
 
 		std::string row(line.begin(), line.end());
-		checkForLinesOfPiecesInBoard(counter, row, indexes);
+		checkForLinesOfPiecesInBoard(counter, row, indexes, NULL, is_move);
 
 		position_counter++;
 		number_of_smaller_position_counter++;
@@ -451,25 +537,29 @@ void Game::doMove(std::string start, std::string destination) {
 		std::pair<int, int> destination_pos = board_indexes_map[destination];
 		Move move(start, destination, start_pos, destination_pos);
 
-		if (validateMove(move)) {
-			if (!checkIfMoveDoesntPushAnyPieceToTheEdge(move)) {
-				//After placing the piece, remove it from reserve
-				if (game_data.current_player == 'B') {
-					game_data.reserve_of_black_pieces--;
-				}
-				else {
-					game_data.reserve_of_white_pieces--;
-				}
-
-				//Next player's turn
-				game_data.current_player = game_data.current_player == 'B' ? 'W' : 'B';
-
-				game_status = "MOVE_COMMITTED";
+		if (validateMove(move) && !checkIfMoveDoesntPushAnyPieceToTheEdge(move)) {
+			//After placing the piece, remove it from reserve
+			if (game_data.current_player == 'B') {
+				game_data.reserve_of_black_pieces--;
 			}
+			else {
+				game_data.reserve_of_white_pieces--;
+			}
+
+			//Next player's turn
+			game_data.current_player = game_data.current_player == 'B' ? 'W' : 'B';
+
+			game_status = "MOVE_COMMITTED";
+
+			validateBoard(true);
 		}
 	}
-	//else {
-	//	game_state = "bad_move";
-	//}
+	if (game_status != "MOVE_COMMITTED") {
+		std::string temp = "bad_move ";
+		temp += game_data.current_player;
+		temp += ' ';
+		game_state = temp + start + '-' + destination;
+	}
+	std::cout << game_state;
 	std::cout << game_status << '\n' << std::endl;
 }

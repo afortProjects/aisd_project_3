@@ -29,10 +29,14 @@ public:
 	void fillBoardIndexesMap();
 	
 	bool checkIfPlayerLost();
-	
-	void checkForLinesOfPiecesInBoard(int& counter, std::string& line, std::vector<std::string> indexes);
 
-	std::pair<bool, int> validateBoard();
+	void splitLineAndIndexes(std::string& line, std::vector<std::string>& indexes, std::vector<std::string>& splitted_line, std::vector<std::vector<std::string>>& splitted_indexes);
+
+	void checkForLinesOfPiecesInBoard(int& counter, std::string& line, std::vector<std::string> indexes, int board_index, bool is_move);
+	
+	std::pair<bool, int> validateBoard(bool is_move);
+
+	void calculatePoints(int count, char color);
 
 	bool validateMove(Move& move);
 

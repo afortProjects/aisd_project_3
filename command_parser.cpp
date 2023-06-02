@@ -16,9 +16,10 @@ void CommandParser::run() {
 			if (input_parser_validation.first) {
 				Game new_game{ new_input_parser.getInputedBoard(), new_input_parser.getGameData() };
 				game = new_game;
-				std::pair<bool, int> game_board_validation = game.validateBoard();
+				std::pair<bool, int> game_board_validation = game.validateBoard(false);
 				if (!game_board_validation.first) {
-					std::cout << "ERROR_FOUND_" <<  game_board_validation.second <<"_ROW_OF_LENGTH_K\n" << std::endl;
+					std::string row_word = game_board_validation.second > 1 ? "ROWS" : "ROW";
+					std::cout << "ERROR_FOUND_" <<  game_board_validation.second <<"_" << row_word <<"_OF_LENGTH_K\n" << std::endl;
 					wasGameCreated = false;
 				}
 				else {
