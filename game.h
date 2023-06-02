@@ -34,7 +34,7 @@ public:
 
 	void checkForLinesOfPiecesInBoard(int& counter, std::string& line, std::vector<std::string> indexes, int board_index, bool is_move);
 	
-	std::pair<bool, int> validateBoard(bool is_move);
+	std::pair<bool, int> validateBoard(bool is_move, bool is_selected_which_pieces_to_take = false, char color = 'NULL', std::string start = "", std::string destination = "");
 
 	void calculatePoints(int count, char color);
 
@@ -54,7 +54,7 @@ public:
 
 	bool checkIfMoveDoesntPushAnyPieceToTheEdge(Move& move);
 
-	void doMove(std::string start, std::string destination);
+	void doMove(std::string start, std::string destination, bool is_selected_which_pieces_to_take = false, char color = 'NULL', std::string start_selected = "", std::string dest_selected = "");
 
 	~Game() {};
 };

@@ -225,7 +225,7 @@ void Game::checkForLinesOfPiecesInBoard(int& counter, std::string& line, std::ve
 					}
 				}
 				if (splitted_indexes.size() >= 1 && is_move) {
-					for (auto& ind : splitted_indexes.back()) {
+					for (auto& ind : splitted_indexes[i]) {
 						std::pair<int, int> position = board_indexes_map[ind];
 						board[position.first][position.second] = '_';
 					}
@@ -242,13 +242,49 @@ void Game::checkForLinesOfPiecesInBoard(int& counter, std::string& line, std::ve
 	}
 }
 
-std::pair<bool, int> Game::validateBoard(bool is_move) {
+std::pair<bool, int> Game::validateBoard(bool is_move, bool is_selected_which_pieces_to_take, char color, std::string start, std::string destination) {
 	//Lines
 	int counter = 0;
+	bool was_selected_found = false;
 	for (int i = 0; i < board.size(); i++) {
 		//Split string by -
 		std::string row (board[i].begin(), board[i].end());
-		checkForLinesOfPiecesInBoard(counter, row, std::vector<std::string> (), i, is_move);
+		if (is_selected_which_pieces_to_take) {
+			std::pair<int, int> start_pos = board_indexes_map[start];
+			std::pair<int, int> destination_pos = board_indexes_map[destination];
+			if (i == start_pos.first && i == destination_pos.first && start_pos.second < board[i].size() && start_pos.second < board[i].size()) {
+				
+				int amount_of_white_pieces_for_selected_row = 0;
+				int amount_of_black_pieces_for_selected_row = 0;
+
+				for(int x=0; x<board[i].size(); x++) {
+					if (board[i][x] == 'W') {
+						amount_of_white_pieces_for_selected_row++;
+					}
+					if (board[i][x] == 'B') {
+						amount_of_black_pieces_for_selected_row++;
+					}
+				}
+
+				if (amount_of_black_pieces_for_selected_row >= game_data.number_of_pieces_that_trigger_collection_of_pieces || amount_of_white_pieces_for_selected_row >= game_data.number_of_pieces_that_trigger_collection_of_pieces) {
+					if (amount_of_white_pieces_for_selected_row > amount_of_black_pieces_for_selected_row && color == 'W' || \
+						amount_of_white_pieces_for_selected_row < amount_of_black_pieces_for_selected_row && color == 'B') {
+						was_selected_found = true;
+						checkForLinesOfPiecesInBoard(counter, row, std::vector<std::string>(), i, true);
+					}
+					else {
+						game_status = "WRONG_COLOR_OF_CHOSEN_ROW";
+						return std::pair<bool, int>{false, -1};
+					}
+				}
+				else {
+					game_status = "WRONG_INDEX_OF_CHOSEN_ROW";
+					return std::pair<bool, int>{false, -1};
+
+				}
+			}
+		} else 
+			checkForLinesOfPiecesInBoard(counter, row, std::vector<std::string> (), i, is_move);
 	}
 
 	//Diagonally (a1-a2-a3...-a_n)
@@ -269,7 +305,53 @@ std::pair<bool, int> Game::validateBoard(bool is_move) {
 		}
 
 		std::string row (line.begin(), line.end());
-		checkForLinesOfPiecesInBoard(counter, row, indexes, NULL, is_move);
+		if (is_selected_which_pieces_to_take) {
+			if (std::count(indexes.begin(), indexes.end(), start) > 0 && std::count(indexes.begin(), indexes.end(), destination) > 0) {
+				auto start_pos = std::find(indexes.begin(), indexes.end(), start);
+				auto dest_pos = std::find(indexes.begin(), indexes.end(), destination);
+
+				int amount_of_white_pieces_for_selected_row = 0;
+				int amount_of_black_pieces_for_selected_row = 0;
+
+				int start_position = std::distance(indexes.begin(), start_pos);
+				int stop_position = std::distance(indexes.begin(), dest_pos);
+
+				if (start_position > stop_position) {
+					for (int i = stop_position; i <= start_position; i++) {
+						if (line[i] == 'W') amount_of_white_pieces_for_selected_row++;
+						if (line[i] == 'B') amount_of_black_pieces_for_selected_row++;
+
+					}
+				}
+				else {
+					for (int i = start_position; i <= stop_position; i++) {
+						if (line[i] == 'W') amount_of_white_pieces_for_selected_row++;
+						if (line[i] == 'B') amount_of_black_pieces_for_selected_row++;
+
+					}
+				}
+
+				if (amount_of_black_pieces_for_selected_row >= game_data.number_of_pieces_that_trigger_collection_of_pieces || amount_of_white_pieces_for_selected_row >= game_data.number_of_pieces_that_trigger_collection_of_pieces) {
+					if (amount_of_white_pieces_for_selected_row >= amount_of_black_pieces_for_selected_row && color == 'w' || \
+						amount_of_white_pieces_for_selected_row <= amount_of_black_pieces_for_selected_row && color == 'b') {
+						was_selected_found = true;
+
+						checkForLinesOfPiecesInBoard(counter, row, indexes, NULL, true);
+					}
+					else {
+						game_status = "WRONG_COLOR_OF_CHOSEN_ROW";
+						return std::pair<bool, int>{false, -1};
+					}
+				}
+				else {
+					game_status = "WRONG_INDEX_OF_CHOSEN_ROW";
+					return std::pair<bool, int>{false, -1};
+
+				}
+			}
+		}
+		else
+			checkForLinesOfPiecesInBoard(counter, row, indexes, NULL, is_move);
 	}
 
 	//Diagonally a5-b5-c5-d5-e5...i-1
@@ -301,7 +383,53 @@ std::pair<bool, int> Game::validateBoard(bool is_move) {
 		}
 
 		std::string row(line.begin(), line.end());
-		checkForLinesOfPiecesInBoard(counter, row, indexes, NULL, is_move);
+		if (is_selected_which_pieces_to_take) {
+			if (std::count(indexes.begin(), indexes.end(), start) > 0 && std::count(indexes.begin(), indexes.end(), destination) > 0) {
+				auto start_pos = std::find(indexes.begin(), indexes.end(), start);
+				auto dest_pos = std::find(indexes.begin(), indexes.end(), destination);
+
+				int amount_of_white_pieces_for_selected_row = 0;
+				int amount_of_black_pieces_for_selected_row = 0;
+
+				int start_position = std::distance(indexes.begin(), start_pos);
+				int stop_position = std::distance(indexes.begin(), dest_pos);
+
+				if (start_position > stop_position) {
+					for (int i = stop_position; i <= start_position; i++) {
+						if (line[i] == 'W') amount_of_white_pieces_for_selected_row++;
+						if (line[i] == 'B') amount_of_black_pieces_for_selected_row++;
+
+					}
+				}
+				else {
+					for (int i = start_position; i <= stop_position; i++) {
+						if (line[i] == 'W') amount_of_white_pieces_for_selected_row++;
+						if (line[i] == 'B') amount_of_black_pieces_for_selected_row++;
+
+					}
+				}
+
+				if (amount_of_black_pieces_for_selected_row >= game_data.number_of_pieces_that_trigger_collection_of_pieces || amount_of_white_pieces_for_selected_row >= game_data.number_of_pieces_that_trigger_collection_of_pieces) {
+					if (amount_of_white_pieces_for_selected_row >= amount_of_black_pieces_for_selected_row && color == 'w' || \
+						amount_of_white_pieces_for_selected_row <= amount_of_black_pieces_for_selected_row && color == 'b') {
+						was_selected_found = true;
+
+						checkForLinesOfPiecesInBoard(counter, row, indexes, NULL, true);
+					}
+					else {
+						game_status = "WRONG_COLOR_OF_CHOSEN_ROW";
+						return std::pair<bool, int>{false, -1};
+					}
+				}
+				else {
+					game_status = "WRONG_INDEX_OF_CHOSEN_ROW";
+					return std::pair<bool, int>{false, -1};
+
+				}
+			}
+		}
+		else
+			checkForLinesOfPiecesInBoard(counter, row, indexes, NULL, is_move);
 
 		position_counter++;
 		number_of_smaller_position_counter++;
@@ -311,6 +439,10 @@ std::pair<bool, int> Game::validateBoard(bool is_move) {
 		if (starter >= game_data.board_size * 2 + 1) {
 			letter_starter++;
 		}
+	}
+
+	if (was_selected_found == false && is_selected_which_pieces_to_take) {
+		game_status = "WRONG_INDEX_OF_CHOSEN_ROW";
 	}
 
 	if (counter == 0)
@@ -522,8 +654,11 @@ bool Game::checkIfMoveDoesntPushAnyPieceToTheEdge(Move& move) {
 	}
 }
 
-void Game::doMove(std::string start, std::string destination) {
-	checkIfPlayerLost();
+void Game::doMove(std::string start, std::string destination, bool is_selected_which_pieces_to_take, char color, std::string start_selected, std::string dest_selected) {
+	if (checkIfPlayerLost()) {
+		printGameState();
+		return;
+	}
 	
 	//Check if indexes exists in hash map
 	if (board_indexes_map.count(start) == 0) {
@@ -551,7 +686,12 @@ void Game::doMove(std::string start, std::string destination) {
 
 			game_status = "MOVE_COMMITTED";
 
-			validateBoard(true);
+			std::pair<bool, int> selectedPositionValidation;
+			if (is_selected_which_pieces_to_take) {
+				selectedPositionValidation = validateBoard(false, is_selected_which_pieces_to_take, color, start_selected, dest_selected);
+			}
+			if(selectedPositionValidation.first || !is_selected_which_pieces_to_take)
+				validateBoard(true);
 		}
 	}
 	if (game_status != "MOVE_COMMITTED") {
@@ -560,6 +700,5 @@ void Game::doMove(std::string start, std::string destination) {
 		temp += ' ';
 		game_state = temp + start + '-' + destination;
 	}
-	std::cout << game_state;
 	std::cout << game_status << '\n' << std::endl;
 }

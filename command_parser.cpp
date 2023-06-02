@@ -49,8 +49,10 @@ void CommandParser::run() {
 			while (std::getline(iss_2, token, '-')) {
 				tokens.push_back(token);
 			}
-
-			game.doMove(tokens[0], tokens[1]);
+			if (words.size() > 2) {
+				game.doMove(tokens[0], tokens[1], true, words[2][0], words[3], words[4]);
+			} else
+				game.doMove(tokens[0], tokens[1]);
 		}
 		else if (input == "PRINT_GAME_BOARD") {
 			if (wasGameCreated)
