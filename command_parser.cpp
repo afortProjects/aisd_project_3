@@ -32,8 +32,6 @@ void CommandParser::run() {
 			}
 		}
 		else if (input.find("DO_MOVE") != std::string::npos) {
-			//TODO: Validate data
-
 			//Here, stream is created to split string by spaces, so we can retrieve position and destination positions
 			std::istringstream iss(input);
 			std::vector<std::string> words(
@@ -49,7 +47,7 @@ void CommandParser::run() {
 			while (std::getline(iss_2, token, '-')) {
 				tokens.push_back(token);
 			}
-			if (words.size() > 2) {
+			if (words.size() > 2 && isalpha(words[2][0])) {
 				game.doMove(tokens[0], tokens[1], true, words[2][0], words[3], words[4]);
 			} else
 				game.doMove(tokens[0], tokens[1]);
