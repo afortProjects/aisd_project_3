@@ -31,7 +31,14 @@ Game::Game(std::vector<std::vector<char>> _board, GameData _game_data) : board(_
 
 	fillBoardIndexesMap();
 }
-
+Game::Game(std::vector<std::vector<char>> _board, GameData _game_data, std::string _game_status, std::string _game_state, std::unordered_map<std::string, std::pair<int, int>> _board_indexes_map, std::unordered_map<std::string, std::string> _board_position_map) {
+	board = _board;
+	game_data = _game_data;
+	game_status = _game_status;
+	game_state = _game_state;
+	board_indexes_map = _board_indexes_map;
+	board_position_map = _board_position_map;
+}
 void Game::printBoard() {
 	std::cout << game_data.board_size << " " << game_data.number_of_pieces_that_trigger_collection_of_pieces << " " << game_data.number_of_white_pieces << " " << game_data.number_of_black_pieces << std::endl;
 	std::cout << game_data.reserve_of_white_pieces << " " << game_data.reserve_of_black_pieces << " " << game_data.current_player << std::endl;
@@ -111,9 +118,26 @@ void Game::fillBoardIndexesMap() {
 }
 
 bool Game::checkIfPlayerLost() {
+	int count = 0;
+	int count_black = 0;
+	int count_white = 0;
+	for (auto& row : board) {
+		count += std::count(row.begin(), row.end(), '_');
+		count_white += std::count(row.begin(), row.end(), 'W');
+		count_black += std::count(row.begin(), row.end(), 'B');
+
+	}
+	if (count == 0) {
+		if (count_white > count_black) game_state = "THE_WINNER_IS_WHITE";
+		if (count_white < count_black) game_state = "THE_WINNER_IS_BLACK";
+		if (count_white == count_black) {
+			game_state = game_data.current_player == 'W' ? "THE_WINNER_IS_BLACK" : "THE_WINNER_IS_WHITE";
+		}
+
+	}
 	int reserve = game_data.current_player == 'B' ? game_data.reserve_of_black_pieces : game_data.reserve_of_white_pieces;
 	if (reserve == 0) {
-		game_state = game_data.current_player == 'B' ? "black_win" : "white_win";
+		game_state = game_data.current_player == 'B' ? "THE_WINNER_IS_WHITE" : "THE_WINNER_IS_BLACK";
 		return true;
 	}
 	return false;
@@ -729,22 +753,32 @@ void Game::doMove(std::string start, std::string destination, bool is_selected_w
 	std::cout << game_status << '\n' << std::endl;
 }
 
-std::vector<std::vector<char>> Game::doMoveForSolver(std::pair<int, int> start_pos, std::pair<int, int> dest_pos) {
+Game Game::doMoveForSolver(std::pair<int, int> start_pos, std::pair<int, int> dest_pos) {
 	std::string start = board_position_map[std::to_string(start_pos.first)+ std::to_string(start_pos.second)];
 	std::string dest = board_position_map[std::to_string(dest_pos.first) + std::to_string(dest_pos.second)];
 
 	Move move(start, dest, start_pos, dest_pos);
+	
+	GameData copied_game_data = game_data;
 	std::vector<std::vector<char>> copied_board = board;
-	if (!checkIfMoveDoesntPushAnyPieceToTheEdge(move)) {
-		std::vector<std::vector<char>> copied_changed_board = board;
-		board = copied_board;
 
-		return copied_changed_board;
+	Game new_game{ board, copied_game_data, game_status, game_state, board_indexes_map, board_position_map };
+	if (!new_game.checkIfMoveDoesntPushAnyPieceToTheEdge(move)) {
+		//After placing the piece, remove it from reserve
+		if (new_game.game_data.current_player == 'B') {
+			new_game.game_data.reserve_of_black_pieces--;
+		}
+		else {
+			new_game.game_data.reserve_of_white_pieces--;
+		}
+
+		//Next player's turn
+		new_game.game_data.current_player = new_game.game_data.current_player == 'B' ? 'W' : 'B';
+
+		new_game.game_status = "MOVE_COMMITTED";
+
+		new_game.validateBoard(true);
 	}
-	board = copied_board;
 
-	return board;
-	//std::vector<std::vector<char>> copied_changed_board = board;
-	//board = copied_board;
-	//return copied_changed_board;
+	return new_game;
 }

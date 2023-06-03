@@ -14,7 +14,7 @@ class Game {
 private:
 	std::string alphabet = "abcdefghijklmnoprstwuxyz";
 	std::string game_status;
-	std::string game_state;
+	std::string game_state = "GAME_IN_PROGRESS";
 	std::unordered_map<std::string, std::pair<int, int>> board_indexes_map;
 	std::unordered_map<std::string, std::string> board_position_map;
 
@@ -26,6 +26,8 @@ public:
 	Game() {};
 
 	Game(std::vector<std::vector<char>> _board, GameData _game_data);
+
+	Game(std::vector<std::vector<char>> _board, GameData _game_data, std::string _game_status, std::string _game_state, std::unordered_map<std::string, std::pair<int, int>> _board_indexes_map, std::unordered_map<std::string, std::string> _board_position_map);
 	
 	void printBoard();
 
@@ -65,7 +67,7 @@ public:
 	
 	std::string getIndexOfPositionInVector(std::pair<int, int> pos);
 
-	std::vector<std::vector<char>> doMoveForSolver(std::pair<int, int> start_pos, std::pair<int, int> dest_pos);
+	Game doMoveForSolver(std::pair<int, int> start_pos, std::pair<int, int> dest_pos);
 
 	~Game() {};
 };
