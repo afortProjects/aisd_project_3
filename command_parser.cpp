@@ -52,6 +52,10 @@ void CommandParser::run() {
 			} else
 				game.doMove(tokens[0], tokens[1]);
 		}
+		else if (input == "IS_GAME_OVER") {
+			game.checkIfPlayerLost();
+			game.printGameState();
+		}
 		else if (input == "PRINT_GAME_BOARD") {
 			if (wasGameCreated)
 				game.printBoard();
@@ -60,6 +64,9 @@ void CommandParser::run() {
 		}
 		else if (input == "GEN_ALL_POS_MOV_NUM") {
 			std::cout << GameSolver::GEN_ALL_POS_MOV_NUM(&game) << "_UNIQUE_MOVES" << std::endl;
+		}
+		else if (input == "GEN_ALL_POS_MOV_EXT_NUM") {
+			std::cout << GameSolver::GEN_ALL_POS_MOV_EXT_NUM(&game) << "_UNIQUE_MOVES" << std::endl;
 		}
 	}
 

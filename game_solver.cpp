@@ -15,7 +15,12 @@ int GameSolver::GEN_ALL_POS_MOV_NUM(Game* game) {
 	return size;
 }
 
-std::vector<std::vector<std::vector<char>>> GameSolver::GEN_ALL_POS_MOV(Game* game) {
+int GameSolver::GEN_ALL_POS_MOV_EXT_NUM(Game* game) {
+	int size = GEN_ALL_POS_MOV(game, true).size();
+	return size;
+}
+
+std::vector<std::vector<std::vector<char>>> GameSolver::GEN_ALL_POS_MOV(Game* game, bool isFindingWinning) {
 	std::vector<std::vector<std::vector<char>>> unique_boards;
 	std::vector<Game> unique_games;
 	
@@ -25,12 +30,18 @@ std::vector<std::vector<std::vector<char>>> GameSolver::GEN_ALL_POS_MOV(Game* ga
 		for (int j = 0; j < game->board[i].size(); j++) {
 			if (game->board[i][j] != ' ') {
 				Game new_game = game->doMoveForSolver(std::pair<int, int> {i, j}, std::pair<int, int> {i, j + 1});
+				if (isFindingWinning && new_game.checkIfPlayerLost()) {
+					return std::vector<std::vector<std::vector<char>>> { new_game.board };
+				}
 				if (is_board_unique(new_game.board, unique_boards) && new_game.board != game->board) {
 					unique_boards.push_back(new_game.board);
 					unique_games.push_back(new_game);
 				}
 				if (i < game->game_data.board_size) {
 					new_game = game->doMoveForSolver(std::pair<int, int> {i, j}, std::pair<int, int> {i + 1, j});
+					if (isFindingWinning && new_game.checkIfPlayerLost()) {
+						return std::vector<std::vector<std::vector<char>>> { new_game.board };
+					}
 					if (is_board_unique(new_game.board, unique_boards) && new_game.board != game->board) {
 						unique_boards.push_back(new_game.board);
 						unique_games.push_back(new_game);
@@ -38,6 +49,9 @@ std::vector<std::vector<std::vector<char>>> GameSolver::GEN_ALL_POS_MOV(Game* ga
 				}
 				else if (i > game->game_data.board_size) {
 					new_game = game->doMoveForSolver(std::pair<int, int> {i, j}, std::pair<int, int> {i - 1, j});
+					if (isFindingWinning && new_game.checkIfPlayerLost()) {
+						return std::vector<std::vector<std::vector<char>>> { new_game.board };
+					}
 					if (is_board_unique(new_game.board, unique_boards) && new_game.board != game->board) {
 						unique_boards.push_back(new_game.board);
 						unique_games.push_back(new_game);
@@ -56,6 +70,9 @@ std::vector<std::vector<std::vector<char>>> GameSolver::GEN_ALL_POS_MOV(Game* ga
 		}
 		if (i < game->game_data.board_size) {
 			new_game = game->doMoveForSolver(std::pair<int, int> {i, game->board[i].size() - 1}, std::pair<int, int> {i + 1, game->board[i].size() - 2});
+			if (isFindingWinning && new_game.checkIfPlayerLost()) {
+				return std::vector<std::vector<std::vector<char>>> { new_game.board };
+			}
 			if (is_board_unique(new_game.board, unique_boards) && new_game.board != game->board) {
 				unique_boards.push_back(new_game.board);
 				unique_games.push_back(new_game);
@@ -64,6 +81,9 @@ std::vector<std::vector<std::vector<char>>> GameSolver::GEN_ALL_POS_MOV(Game* ga
 		}
 		else if (i > game->game_data.board_size) {
 			new_game = game->doMoveForSolver(std::pair<int, int> {i, game->board[i].size() - 1}, std::pair<int, int> {i - 1, game->board[i].size() - 2});
+			if (isFindingWinning && new_game.checkIfPlayerLost()) {
+				return std::vector<std::vector<std::vector<char>>> { new_game.board };
+			}
 			if (is_board_unique(new_game.board, unique_boards) && new_game.board != game->board) {
 				unique_boards.push_back(new_game.board);
 				unique_games.push_back(new_game);
@@ -83,6 +103,9 @@ std::vector<std::vector<std::vector<char>>> GameSolver::GEN_ALL_POS_MOV(Game* ga
 				stop.first = 1;
 				stop.second = i == game->game_data.board_size ? i : i-1;
 				Game new_game = game->doMoveForSolver(start, stop);
+				if (isFindingWinning && new_game.checkIfPlayerLost()) {
+					return std::vector<std::vector<std::vector<char>>> { new_game.board };
+				}
 				if (is_board_unique(new_game.board, unique_boards) && new_game.board != game->board) {
 					unique_boards.push_back(new_game.board);
 					unique_games.push_back(new_game);
@@ -91,6 +114,9 @@ std::vector<std::vector<std::vector<char>>> GameSolver::GEN_ALL_POS_MOV(Game* ga
 			}
 			else {
 				Game new_game = game->doMoveForSolver(std::pair<int, int> {0, i}, std::pair<int, int> {1, i-1});
+				if (isFindingWinning && new_game.checkIfPlayerLost()) {
+					return std::vector<std::vector<std::vector<char>>> { new_game.board };
+				}
 				if (is_board_unique(new_game.board, unique_boards) && new_game.board != game->board) {
 					unique_boards.push_back(new_game.board);
 					unique_games.push_back(new_game);
@@ -98,6 +124,9 @@ std::vector<std::vector<std::vector<char>>> GameSolver::GEN_ALL_POS_MOV(Game* ga
 				}
 
 				new_game = game->doMoveForSolver(std::pair<int, int> {0, i}, std::pair<int, int> {1, i});
+				if (isFindingWinning && new_game.checkIfPlayerLost()) {
+					return std::vector<std::vector<std::vector<char>>> { new_game.board };
+				}
 				if (is_board_unique(new_game.board, unique_boards) && new_game.board != game->board) {
 					unique_boards.push_back(new_game.board);
 					unique_games.push_back(new_game);
@@ -117,6 +146,9 @@ std::vector<std::vector<std::vector<char>>> GameSolver::GEN_ALL_POS_MOV(Game* ga
 				stop.first = game->game_data.board_size * 2 - 1;
 				stop.second = i == game->game_data.board_size * 2 ? i - 1 : i;
 				Game new_game = game->doMoveForSolver(start, stop);
+				if (isFindingWinning && new_game.checkIfPlayerLost()) {
+					return std::vector<std::vector<std::vector<char>>> { new_game.board };
+				}
 				if (is_board_unique(new_game.board, unique_boards) && new_game.board != game->board) {
 					unique_boards.push_back(new_game.board);
 					unique_games.push_back(new_game);
@@ -125,6 +157,9 @@ std::vector<std::vector<std::vector<char>>> GameSolver::GEN_ALL_POS_MOV(Game* ga
 			}
 			else {
 				Game new_game = game->doMoveForSolver(std::pair<int, int> {game->game_data.board_size * 2, i}, std::pair<int, int> {game->game_data.board_size * 2 - 1, i - 1});
+				if (isFindingWinning && new_game.checkIfPlayerLost()) {
+					return std::vector<std::vector<std::vector<char>>> { new_game.board };
+				}
 				if (is_board_unique(new_game.board, unique_boards) && new_game.board != game->board) {
 					unique_boards.push_back(new_game.board);
 					unique_games.push_back(new_game);

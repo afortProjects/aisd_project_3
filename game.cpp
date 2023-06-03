@@ -125,7 +125,6 @@ bool Game::checkIfPlayerLost() {
 		count += std::count(row.begin(), row.end(), '_');
 		count_white += std::count(row.begin(), row.end(), 'W');
 		count_black += std::count(row.begin(), row.end(), 'B');
-
 	}
 	if (count == 0) {
 		if (count_white > count_black) game_state = "THE_WINNER_IS_WHITE";
@@ -133,6 +132,7 @@ bool Game::checkIfPlayerLost() {
 		if (count_white == count_black) {
 			game_state = game_data.current_player == 'W' ? "THE_WINNER_IS_BLACK" : "THE_WINNER_IS_WHITE";
 		}
+		return true;
 
 	}
 	int reserve = game_data.current_player == 'B' ? game_data.reserve_of_black_pieces : game_data.reserve_of_white_pieces;
@@ -704,12 +704,7 @@ bool Game::checkIfMoveDoesntPushAnyPieceToTheEdge(Move& move) {
 	}
 }
 
-void Game::doMove(std::string start, std::string destination, bool is_selected_which_pieces_to_take, char color, std::string start_selected, std::string dest_selected) {
-	if (checkIfPlayerLost()) {
-		printGameState();
-		return;
-	}
-	
+void Game::doMove(std::string start, std::string destination, bool is_selected_which_pieces_to_take, char color, std::string start_selected, std::string dest_selected) {	
 	//Check if indexes exists in hash map
 	if (board_indexes_map.count(start) == 0) {
 		game_status = "BAD_MOVE_" + start + "_IS_WRONG_INDEX";
@@ -749,6 +744,10 @@ void Game::doMove(std::string start, std::string destination, bool is_selected_w
 		temp += game_data.current_player;
 		temp += ' ';
 		game_state = temp + start + '-' + destination;
+	}
+	if (checkIfPlayerLost() && game_status == "MOVE_COMMITED") {
+		printGameState();
+		return;
 	}
 	std::cout << game_status << '\n' << std::endl;
 }
