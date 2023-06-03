@@ -58,6 +58,9 @@ void CommandParser::run() {
 			else
 				std::cout << "EMPTY_BOARD" << std::endl;
 		}
+		else if (input == "GEN_ALL_POS_MOV_NUM") {
+			std::cout << GameSolver::GEN_ALL_POS_MOV_NUM(&game) << "_UNIQUE_MOVES" << std::endl;
+		}
 	}
 
 }

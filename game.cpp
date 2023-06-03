@@ -72,7 +72,8 @@ void Game::fillBoardIndexesMap() {
 						board_index = alphabet[letter_counter] + std::to_string(counter + 1);
 
 					//std::cout << board_index << " " << i << " " << j << counter_pos << std::endl;
-
+					std::string temp = std::to_string(i) + std::to_string(j);
+					board_position_map[temp] = board_index;
 					this->board_indexes_map[board_index] = std::pair<int, int>{ i , j };
 					letter_counter++;
 				}
@@ -93,8 +94,10 @@ void Game::fillBoardIndexesMap() {
 						board_index = alphabet[letter_counter] + std::to_string(counter + 1);
 
 					//std::cout << board_index << " " << i << " " << j << counter_pos << std::endl;
-
+					std::string temp = std::to_string(i) + std::to_string(j);
+					board_position_map[temp] = board_index;
 					this->board_indexes_map[board_index] = std::pair<int, int>{ i , j };
+
 					letter_counter++;
 					
 					if(j < counter_pos)
@@ -474,19 +477,24 @@ bool Game::shiftVectorByRightIfFoundPlace(std::vector<char>& line) {
 bool Game::handleLineMovement(Move& move) {
 	if (std::count(board[move.start_pos.first].begin(), board[move.start_pos.first].end(), '_') > 0) {
 		int index = 0;
-		auto iterator = std::find(board[move.start_pos.first].begin(), board[move.start_pos.first].end(), '_');
-
-		if (iterator != board[move.start_pos.first].end()) {
-			index = static_cast<int> (std::distance(board[move.start_pos.first].begin(), iterator));
-		}
-
 		if (move.start_pos.second < game_data.board_size) {
-			for (int i = index; i > 1; i--) {
-				board[move.start_pos.first][i] = board[move.start_pos.first][i - 1];
+			auto iterator = std::find(board[move.start_pos.first].begin(), board[move.start_pos.first].end(), '_');
+
+			if (iterator != board[move.start_pos.first].end()) {
+				index = static_cast<int> (std::distance(board[move.start_pos.first].begin(), iterator));
 			}
-			board[move.start_pos.first][1] = game_data.current_player;
+ 			for (int i = index; i > abs(game_data.board_size - move.start_pos.first) + 1; i--) {
+				board[move.start_pos.first][i] = board[move.start_pos.first][i-1];
+			}
+			board[move.start_pos.first][abs(game_data.board_size - move.start_pos.first) + 1] = game_data.current_player;
+
 		}
 		else {
+			auto iterator = std::find(std::make_reverse_iterator(board[move.start_pos.first].end()), std::make_reverse_iterator(board[move.start_pos.first].begin()), '_');
+
+			if (iterator != board[move.start_pos.first].rend()) {
+				index = static_cast<int> (std::distance(iterator, board[move.start_pos.first].rend()-1));
+			}
 			for (int i = index; i < board[move.start_pos.first].size() - 2; i++) {
 				board[move.start_pos.first][i] = board[move.start_pos.first][i + 1];
 			}
@@ -498,29 +506,28 @@ bool Game::handleLineMovement(Move& move) {
 }
 
 bool Game::handleTopLeftMovement(Move& move) {
-	if (move.start_pos.second <= game_data.board_size) {
-		int skip = 2 * game_data.board_size - 1 - move.start_pos.first;
-		int counter = move.start_pos.second;
-		for (int i = 1 + move.start_pos.first; i < skip + 1; i++) {
-			if (i > game_data.board_size)
-				counter++;
-			move.indexes.push_back(std::pair<int, int>(i, counter));
-			move.line.push_back(board[i][counter]);
-		}
-
-		if (shiftVectorByRightIfFoundPlace(move.line)) {
-			for (int i = 0; i < move.line.size(); i++) {
-				board[move.indexes[i].first][move.indexes[i].second] = move.line[i];
-			}
-			return true;
-		}
+	int skip = 2 * game_data.board_size - 1 - move.start_pos.first;
+	int counter = move.start_pos.second;
+	for (int i = move.destination_pos.first; i < game_data.board_size*2; i++) { // can add <=
+		if (i > game_data.board_size)
+			counter++;
+		move.indexes.push_back(std::pair<int, int>(i, counter));
+		move.line.push_back(board[i][counter]);
 
 	}
+
+	if (shiftVectorByRightIfFoundPlace(move.line)) {
+		for (int i = 1; i < move.line.size(); i++) {
+			board[move.indexes[i].first][move.indexes[i].second] = move.line[i];
+		}
+		return true;
+	}
+	
 	return false;
 }
 
 bool Game::handleTopRightMovement(Move& move) {
-	int counter = move.index;
+	int counter = move.index; // was without - 11
 	while (counter >= 2) {
 		std::string new_index = move.starter_letter + std::to_string(counter);
 		std::pair<int, int> new_index_pos = board_indexes_map[new_index];
@@ -562,9 +569,11 @@ bool Game::handleBottomLeftMovement(Move& move) {
 
 bool Game::handleBottomRightMovement(Move& move) {
 	int counter = move.start_pos.second - 1;
-	for (int i = move.start_pos.first - 1; i > 0; i--) {
+	for (int i = move.start_pos.first - 1; i > 1; i--) {
+
 		move.indexes.push_back(std::pair<int, int>(i, counter));
 		move.line.push_back(board[i][counter]);
+		//was here counter--
 		if (i > game_data.board_size)
 			counter--;
 	}
@@ -580,31 +589,85 @@ bool Game::handleBottomRightMovement(Move& move) {
 }
 
 bool Game::checkIfMoveDoesntPushAnyPieceToTheEdge(Move& move) {
-	bool wasMoveMade = false;
+	bool wasMoveMade = false; 
 
-	if (move.destination_pos.first == move.start_pos.first) {
-		wasMoveMade = handleLineMovement(move);
-	}
-	else {
-		//Handle up side of the board
-		if (move.start_pos.first <= game_data.board_size) {
+	if (move.start_pos.first > 0 && move.start_pos.first < game_data.board_size * 2) {
+		if (move.destination_pos.first == move.start_pos.first) {
+			wasMoveMade = handleLineMovement(move);
+		}
+		else {
+			//Handle up side of the board
+			if (move.start_pos.first <= game_data.board_size) {
 
-			if (move.start_pos.second <= game_data.board_size) {
-				wasMoveMade = handleTopLeftMovement(move);
+				if (move.start_pos.second <= game_data.board_size) {
+					wasMoveMade = handleTopLeftMovement(move);
+				}
+
+				else {
+					wasMoveMade = handleTopRightMovement(move);
+				}
 			}
-
+			//Handle bottom side of the board
 			else {
-				wasMoveMade = handleTopRightMovement(move);
+				if (move.start_pos.second <= game_data.board_size) {
+					wasMoveMade = handleBottomLeftMovement(move);
+				}
+				else {
+					wasMoveMade = handleBottomRightMovement(move);
+				}
 			}
 		}
-		//Handle bottom side of the board
-		else {
-			if (move.start_pos.second <= game_data.board_size) {
-				wasMoveMade = handleBottomLeftMovement(move);
+	}
+	else {
+		if (move.start_pos.first == 0 && move.start_pos.second == move.destination_pos.second) {
+			int counter = move.start_pos.second;
+			for (int i = 1; i < 2 * game_data.board_size - (move.start_pos.second - game_data.board_size); i++) {
+				move.indexes.push_back(std::pair<int, int>(i, counter));
+				move.line.push_back(board[i][counter]);
+				if (i >= game_data.board_size) {
+					counter++;
+				}
 			}
-			else {
-				wasMoveMade = handleBottomRightMovement(move);
+
+		}
+		else if (move.start_pos.first == 0 && move.start_pos.second == move.destination_pos.second + 1) {
+			std::string letter = board_position_map[std::to_string(move.destination_pos.first) + std::to_string(move.destination_pos.second)];
+			char l = letter[0];
+			int n = letter[1] - '0';
+			while (n != 2) {
+				std::string new_letter = l + std::to_string(n);
+				move.indexes.push_back(board_indexes_map[new_letter]);
+				move.line.push_back(board[board_indexes_map[new_letter].first][board_indexes_map[new_letter].second]);
+				n--;
 			}
+		}
+		else if (move.start_pos.first == game_data.board_size * 2 && move.start_pos.second == move.destination_pos.second) {
+			std::string letter = board_position_map[std::to_string(move.destination_pos.first) + std::to_string(move.destination_pos.second)];
+			char l = letter[0];
+			int n = letter[1] - '0';
+			std::string new_letter = l + std::to_string(n);
+			while (board_indexes_map.count(new_letter) > 0) {
+				move.indexes.push_back(board_indexes_map[new_letter]);
+				move.line.push_back(board[board_indexes_map[new_letter].first][board_indexes_map[new_letter].second]);
+				n++;
+				new_letter = l + std::to_string(n);
+
+			}
+		}
+		else if (move.start_pos.first == game_data.board_size * 2 && move.start_pos.second == move.destination_pos.second + 1) {
+			int counter = move.start_pos.second - 1;
+			for (int i = move.start_pos.first - 1; i > 1; i--) {
+				move.indexes.push_back(std::pair<int, int>(i, counter));
+				move.line.push_back(board[i][counter]);
+				if(i > game_data.board_size)
+					counter--;
+			}
+		}
+		if (move.line.size() > 0 && shiftVectorByRightIfFoundPlace(move.line)) {
+			for (int i = 0; i < move.line.size(); i++) {
+				board[move.indexes[i].first][move.indexes[i].second] = move.line[i];
+			}
+			wasMoveMade = true;
 		}
 	}
 
@@ -664,4 +727,24 @@ void Game::doMove(std::string start, std::string destination, bool is_selected_w
 		game_state = temp + start + '-' + destination;
 	}
 	std::cout << game_status << '\n' << std::endl;
+}
+
+std::vector<std::vector<char>> Game::doMoveForSolver(std::pair<int, int> start_pos, std::pair<int, int> dest_pos) {
+	std::string start = board_position_map[std::to_string(start_pos.first)+ std::to_string(start_pos.second)];
+	std::string dest = board_position_map[std::to_string(dest_pos.first) + std::to_string(dest_pos.second)];
+
+	Move move(start, dest, start_pos, dest_pos);
+	std::vector<std::vector<char>> copied_board = board;
+	if (!checkIfMoveDoesntPushAnyPieceToTheEdge(move)) {
+		std::vector<std::vector<char>> copied_changed_board = board;
+		board = copied_board;
+
+		return copied_changed_board;
+	}
+	board = copied_board;
+
+	return board;
+	//std::vector<std::vector<char>> copied_changed_board = board;
+	//board = copied_board;
+	//return copied_changed_board;
 }

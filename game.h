@@ -9,15 +9,20 @@
 #include <sstream>
 #include <iterator>
 #include <algorithm>
+#include <utility>
 class Game {
 private:
 	std::string alphabet = "abcdefghijklmnoprstwuxyz";
 	std::string game_status;
 	std::string game_state;
-	GameData game_data;
-	std::vector<std::vector<char>> board;
 	std::unordered_map<std::string, std::pair<int, int>> board_indexes_map;
+	std::unordered_map<std::string, std::string> board_position_map;
+
 public:
+	std::vector<std::vector<char>> board;
+	GameData game_data;
+
+
 	Game() {};
 
 	Game(std::vector<std::vector<char>> _board, GameData _game_data);
@@ -57,6 +62,10 @@ public:
 	bool checkIfMoveDoesntPushAnyPieceToTheEdge(Move& move);
 
 	void doMove(std::string start, std::string destination, bool is_selected_which_pieces_to_take = false, char color = 'N', std::string start_selected = "", std::string dest_selected = "");
+	
+	std::string getIndexOfPositionInVector(std::pair<int, int> pos);
+
+	std::vector<std::vector<char>> doMoveForSolver(std::pair<int, int> start_pos, std::pair<int, int> dest_pos);
 
 	~Game() {};
 };

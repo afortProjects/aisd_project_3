@@ -2,6 +2,7 @@
 
 #include "input_parser.h"
 #include "game.h"
+#include "game_solver.h"
 
 #include <iostream>
 #include <sstream>
